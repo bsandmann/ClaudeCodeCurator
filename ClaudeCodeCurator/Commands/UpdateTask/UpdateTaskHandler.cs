@@ -26,6 +26,7 @@ public class UpdateTaskHandler : IRequestHandler<UpdateTaskRequest, Result<bool>
         {
             // Find the task by ID
             var task = await context.Tasks
+                .AsTracking()
                 .FirstOrDefaultAsync(t => t.Id == request.TaskId, cancellationToken);
 
             if (task == null)

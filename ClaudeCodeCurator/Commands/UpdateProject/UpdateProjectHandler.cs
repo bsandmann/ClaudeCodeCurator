@@ -24,8 +24,9 @@ public class UpdateProjectHandler : IRequestHandler<UpdateProjectRequest, Result
 
         try
         {
-            // Find the project by ID
+            // Find the project by ID and ensure it's tracked by the context
             var project = await context.Projects
+                .AsTracking()
                 .FirstOrDefaultAsync(p => p.Id == request.ProjectId, cancellationToken);
 
             if (project == null)
@@ -53,8 +54,8 @@ public class UpdateProjectHandler : IRequestHandler<UpdateProjectRequest, Result
 
             // Update the project name
             project.Name = request.Name;
-
-            context.Update(project);
+            
+            // No need to call context.Update(project) since the entity is tracked
             await context.SaveChangesAsync(cancellationToken);
             
             return Result.Ok(true);

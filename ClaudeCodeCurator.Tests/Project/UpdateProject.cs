@@ -18,6 +18,15 @@ public partial class IntegrationTests
         Assert.True(createResult.IsSuccess);
         var projectId = createResult.Value;
         
+        // Fetch and verify initial value
+        using (var context = Fixture.CreateContext())
+        {
+            context.ChangeTracker.Clear();
+            var project = await context.Projects.FindAsync(projectId);
+            Assert.NotNull(project);
+            Assert.Equal(projectName, project.Name);
+        }
+        
         // Arrange - Then prepare the update
         var newName = "UpdatedName";
         var updateProjectRequest = new UpdateProjectRequest(projectId, newName);
@@ -28,18 +37,14 @@ public partial class IntegrationTests
         // Assert - Verify update success
         Assert.True(updateResult.IsSuccess);
         Assert.True(updateResult.Value); // Should return true indicating a change was made
-
-        // Create a fresh database context to verify the changes        
-        using (var verificationContext = new DataContext(
-            new DbContextOptionsBuilder<DataContext>()
-                .UseNpgsql(TransactionalTestDatabaseFixture.ConnectionString)
-                .UseQueryTrackingBehavior(QueryTrackingBehavior.TrackAll)
-                .Options))
+        
+        // Verify the project was actually updated in the database
+        using (var context = Fixture.CreateContext())
         {
-            // Get the updated project from a fresh context
-            var updatedProject = await verificationContext.Projects.FindAsync(projectId);
+            // Need to explicitly clear the EF Core cache to see the latest changes
+            context.ChangeTracker.Clear();
             
-            // Verify name was updated
+            var updatedProject = await context.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == projectId);
             Assert.NotNull(updatedProject);
             Assert.Equal(newName, updatedProject.Name);
         }

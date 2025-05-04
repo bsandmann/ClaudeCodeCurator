@@ -26,6 +26,7 @@ public class UpdateUserStoryHandler : IRequestHandler<UpdateUserStoryRequest, Re
         {
             // Find the user story by ID
             var userStory = await context.UserStories
+                .AsTracking()
                 .FirstOrDefaultAsync(us => us.Id == request.UserStoryId, cancellationToken);
 
             if (userStory == null)

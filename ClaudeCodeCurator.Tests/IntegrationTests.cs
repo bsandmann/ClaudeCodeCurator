@@ -1,6 +1,12 @@
 ﻿using ClaudeCodeCurator.Commands.CreateProject;
+using ClaudeCodeCurator.Commands.CreateTask;
+using ClaudeCodeCurator.Commands.CreateUserStory;
+using ClaudeCodeCurator.Commands.GetTaskById;
 using ClaudeCodeCurator.Commands.UpdateProject;
+using ClaudeCodeCurator.Commands.UpdateTask;
+using ClaudeCodeCurator.Commands.UpdateUserStory;
 using ClaudeCodeCurator.Common;
+using FluentResults;
 using LazyCache;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +28,11 @@ public partial class IntegrationTests : IDisposable
     private readonly IServiceProvider _serviceProviderMock;
     private readonly CreateProjectHandler _createProjectHandler;
     private readonly UpdateProjectHandler _updateProjectHandler;
+    private readonly CreateUserStoryHandler _createUserStoryHandler;
+    private readonly UpdateUserStoryHandler _updateUserStoryHandler;
+    private readonly CreateTaskHandler _createTaskHandler;
+    private readonly UpdateTaskHandler _updateTaskHandler;
+    private readonly GetTaskByIdHandler _getTaskByIdHandler;
     public IntegrationTests(TransactionalTestDatabaseFixture fixture)
     {
         this.Fixture = fixture;
@@ -50,9 +61,14 @@ public partial class IntegrationTests : IDisposable
             .Setup(f => f.CreateScope())
             .Returns(_serviceScopeMock.Object);
 
-
+        // Create handlers with the real implementations
         this._createProjectHandler = new CreateProjectHandler(_serviceScopeFactoryMock.Object);
         this._updateProjectHandler = new UpdateProjectHandler(_serviceScopeFactoryMock.Object);
+        this._createUserStoryHandler = new CreateUserStoryHandler(_serviceScopeFactoryMock.Object);
+        this._updateUserStoryHandler = new UpdateUserStoryHandler(_serviceScopeFactoryMock.Object);
+        this._createTaskHandler = new CreateTaskHandler(_serviceScopeFactoryMock.Object);
+        this._updateTaskHandler = new UpdateTaskHandler(_serviceScopeFactoryMock.Object);
+        this._getTaskByIdHandler = new GetTaskByIdHandler(_serviceScopeFactoryMock.Object);
 
         // Initialize handlers with the mocked service scope factory
     }
