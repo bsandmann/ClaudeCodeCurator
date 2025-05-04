@@ -1,4 +1,5 @@
 ﻿using ClaudeCodeCurator.Commands.CreateProject;
+using ClaudeCodeCurator.Commands.UpdateProject;
 using ClaudeCodeCurator.Common;
 using LazyCache;
 using MediatR;
@@ -20,6 +21,7 @@ public partial class IntegrationTests : IDisposable
     private readonly Mock<IServiceScope> _serviceScopeMock;
     private readonly IServiceProvider _serviceProviderMock;
     private readonly CreateProjectHandler _createProjectHandler;
+    private readonly UpdateProjectHandler _updateProjectHandler;
     public IntegrationTests(TransactionalTestDatabaseFixture fixture)
     {
         this.Fixture = fixture;
@@ -50,6 +52,7 @@ public partial class IntegrationTests : IDisposable
 
 
         this._createProjectHandler = new CreateProjectHandler(_serviceScopeFactoryMock.Object);
+        this._updateProjectHandler = new UpdateProjectHandler(_serviceScopeFactoryMock.Object);
 
         // Initialize handlers with the mocked service scope factory
     }

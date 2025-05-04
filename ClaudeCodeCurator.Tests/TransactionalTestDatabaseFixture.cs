@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 public class TransactionalTestDatabaseFixture
 {
 
-    private const string ConnectionString = @"Host=10.10.20.103; Database=claudecodecuratortests; Username=postgres; Password=postgres; Include Error Detail=true";
+    public const string ConnectionString = @"Host=10.10.20.103; Database=claudecodecuratortests; Username=postgres; Password=postgres; Include Error Detail=true";
 
     public DataContext CreateContext()
     {

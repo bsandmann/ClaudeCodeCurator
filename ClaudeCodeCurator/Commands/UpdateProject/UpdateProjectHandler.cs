@@ -53,7 +53,8 @@ public class UpdateProjectHandler : IRequestHandler<UpdateProjectRequest, Result
 
             // Update the project name
             project.Name = request.Name;
-            
+
+            context.Update(project);
             await context.SaveChangesAsync(cancellationToken);
             
             return Result.Ok(true);
