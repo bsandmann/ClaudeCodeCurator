@@ -1,14 +1,12 @@
-﻿
-
-using ClaudeCodeCurator;
+﻿using ClaudeCodeCurator.Commands.CreateProject;
 using ClaudeCodeCurator.Common;
 using LazyCache;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using OpenPrismNode.Core.IntegrationTests;
+
+namespace ClaudeCodeCurator.Tests;
 
 [Collection("TransactionalTests")]
 public partial class IntegrationTests : IDisposable
@@ -21,7 +19,7 @@ public partial class IntegrationTests : IDisposable
     private readonly Mock<IServiceScopeFactory> _serviceScopeFactoryMock;
     private readonly Mock<IServiceScope> _serviceScopeMock;
     private readonly IServiceProvider _serviceProviderMock;
-
+    private readonly CreateProjectHandler _createProjectHandler;
     public IntegrationTests(TransactionalTestDatabaseFixture fixture)
     {
         this.Fixture = fixture;
@@ -49,7 +47,10 @@ public partial class IntegrationTests : IDisposable
         _serviceScopeFactoryMock
             .Setup(f => f.CreateScope())
             .Returns(_serviceScopeMock.Object);
-        
+
+
+        this._createProjectHandler = new CreateProjectHandler(_serviceScopeFactoryMock.Object);
+
         // Initialize handlers with the mocked service scope factory
     }
 
