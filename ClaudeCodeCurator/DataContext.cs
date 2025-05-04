@@ -44,7 +44,7 @@ public class DataContext : DbContext
             
             // Define relationship with Project
             entity.HasOne(d => d.Project)
-                .WithMany()
+                .WithMany(p => p.UserStories)
                 .HasForeignKey(d => d.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
@@ -67,7 +67,7 @@ public class DataContext : DbContext
             
             // Define relationship with UserStory
             entity.HasOne(d => d.UserStory)
-                .WithMany()
+                .WithMany(us => us.Tasks)
                 .HasForeignKey(d => d.UserStoryId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();

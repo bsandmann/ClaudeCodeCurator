@@ -9,8 +9,6 @@ public class TaskModel
     public string PromptBody { get; set; } = string.Empty;
     public TaskType Type { get; set; } = TaskType.Task;
     
+    // Reference to parent user story by ID only
     public Guid UserStoryId { get; set; }
-    
-    // Navigation property
-    public UserStoryModel? UserStory { get; set; }
 }

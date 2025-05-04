@@ -16,6 +16,9 @@ public class UserStoryEntity
     // Foreign key for Project
     public Guid ProjectId { get; set; }
     
-    // Navigation property
-    public ProjectEntity Project { get; set; } = null!;
+    // Navigation property - parent project
+    public virtual ProjectEntity Project { get; set; } = null!;
+    
+    // Navigation property - collection of tasks
+    public virtual ICollection<TaskEntity> Tasks { get; set; } = new List<TaskEntity>();
 }

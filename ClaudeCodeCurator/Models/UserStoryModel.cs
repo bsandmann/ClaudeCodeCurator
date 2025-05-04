@@ -6,9 +6,9 @@ public class UserStoryModel
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     
+    // Reference to parent project by ID only
     public Guid ProjectId { get; set; }
     
-    // Navigation properties
-    public ProjectModel? Project { get; set; }
+    // Collection of child tasks
     public List<TaskModel> Tasks { get; set; } = new();
 }
