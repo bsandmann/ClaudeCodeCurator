@@ -25,6 +25,9 @@ public class TaskEntity
     public DateTime? RequestedByAiUtc { get; set; }
     public DateTime? FinishedByAiUtc { get; set; }
     
+    // Creation/update timestamp
+    public DateTime CreatedOrUpdatedUtc { get; set; }
+    
     // Foreign key for UserStory
     public Guid UserStoryId { get; set; }
     

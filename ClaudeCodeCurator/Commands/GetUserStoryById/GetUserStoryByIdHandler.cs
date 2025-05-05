@@ -50,6 +50,7 @@ public class GetUserStoryByIdHandler : IRequestHandler<GetUserStoryByIdRequest, 
                 Name = userStoryEntity.Name,
                 Description = userStoryEntity.Description,
                 UserStoryNumber = userStoryEntity.UserStoryNumber,
+                CreatedOrUpdatedUtc = userStoryEntity.CreatedOrUpdatedUtc,
                 ProjectId = userStoryEntity.ProjectId,
                 Tasks = new List<TaskModel>()
             };
@@ -69,7 +70,8 @@ public class GetUserStoryByIdHandler : IRequestHandler<GetUserStoryByIdRequest, 
                         UserStoryId = userStoryEntity.Id,
                         ApprovedByUserUtc = taskEntity.ApprovedByUserUtc,
                         RequestedByAiUtc = taskEntity.RequestedByAiUtc,
-                        FinishedByAiUtc = taskEntity.FinishedByAiUtc
+                        FinishedByAiUtc = taskEntity.FinishedByAiUtc,
+                        CreatedOrUpdatedUtc = taskEntity.CreatedOrUpdatedUtc
                     });
                 }
             }

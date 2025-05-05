@@ -15,6 +15,9 @@ public class ProjectEntity
     
     public int TaskNumberCounter { get; set; }
     
+    // Creation/update timestamp
+    public DateTime CreatedOrUpdatedUtc { get; set; }
+    
     // Navigation property - collection of user stories
     public virtual ICollection<UserStoryEntity> UserStories { get; set; } = new List<UserStoryEntity>();
 }

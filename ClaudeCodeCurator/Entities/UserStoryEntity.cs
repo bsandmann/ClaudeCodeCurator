@@ -16,6 +16,9 @@ public class UserStoryEntity
     // Auto-incremented number within project
     public int UserStoryNumber { get; set; }
     
+    // Creation/update timestamp
+    public DateTime CreatedOrUpdatedUtc { get; set; }
+    
     // Foreign key for Project
     public Guid ProjectId { get; set; }
     

@@ -249,8 +249,8 @@ public partial class IntegrationTests
         var userStoryModelType = typeof(UserStoryModel);
         var properties = userStoryModelType.GetProperties();
         
-        // Should only contain the 6 expected properties
-        Assert.Equal(6, properties.Length);
+        // Should only contain the 7 expected properties (6 original + CreatedOrUpdatedUtc)
+        Assert.Equal(7, properties.Length);
         
         // Check that there are no navigation properties to Project entity
         var propertyNames = properties.Select(p => p.Name).ToList();
@@ -258,6 +258,7 @@ public partial class IntegrationTests
         Assert.Contains("Name", propertyNames);
         Assert.Contains("Description", propertyNames);
         Assert.Contains("UserStoryNumber", propertyNames);
+        Assert.Contains("CreatedOrUpdatedUtc", propertyNames);
         Assert.Contains("ProjectId", propertyNames);
         Assert.Contains("Tasks", propertyNames);
         

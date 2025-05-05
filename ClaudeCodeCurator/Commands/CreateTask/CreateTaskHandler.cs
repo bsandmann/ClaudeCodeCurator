@@ -62,7 +62,8 @@ public class CreateTaskHandler : IRequestHandler<CreateTaskRequest, Result<Guid>
                 PromptBody = request.PromptBody,
                 UserStoryId = request.UserStoryId,
                 Type = request.Type,
-                TaskNumber = project.TaskNumberCounter
+                TaskNumber = project.TaskNumberCounter,
+                CreatedOrUpdatedUtc = DateTime.UtcNow
             };
 
             await context.Tasks.AddAsync(task, cancellationToken);

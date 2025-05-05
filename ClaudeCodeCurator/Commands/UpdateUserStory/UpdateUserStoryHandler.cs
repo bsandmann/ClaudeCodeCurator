@@ -72,6 +72,7 @@ public class UpdateUserStoryHandler : IRequestHandler<UpdateUserStoryRequest, Re
             // Only save if there are actual changes
             if (hasChanges)
             {
+                userStory.CreatedOrUpdatedUtc = DateTime.UtcNow;
                 await context.SaveChangesAsync(cancellationToken);
                 return Result.Ok(true);
             }

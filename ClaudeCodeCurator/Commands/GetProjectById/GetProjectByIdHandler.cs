@@ -61,6 +61,7 @@ public class GetProjectByIdHandler : IRequestHandler<GetProjectByIdRequest, Resu
                 Name = projectEntity.Name,
                 UserStoryNumberCounter = projectEntity.UserStoryNumberCounter,
                 TaskNumberCounter = projectEntity.TaskNumberCounter,
+                CreatedOrUpdatedUtc = projectEntity.CreatedOrUpdatedUtc,
                 UserStories = new List<UserStoryModel>()
             };
             
@@ -75,6 +76,7 @@ public class GetProjectByIdHandler : IRequestHandler<GetProjectByIdRequest, Resu
                         Name = userStoryEntity.Name,
                         Description = userStoryEntity.Description,
                         UserStoryNumber = userStoryEntity.UserStoryNumber,
+                        CreatedOrUpdatedUtc = userStoryEntity.CreatedOrUpdatedUtc,
                         ProjectId = projectEntity.Id,
                         Tasks = new List<TaskModel>()
                     };
@@ -94,7 +96,8 @@ public class GetProjectByIdHandler : IRequestHandler<GetProjectByIdRequest, Resu
                                 UserStoryId = userStoryEntity.Id,
                                 ApprovedByUserUtc = taskEntity.ApprovedByUserUtc,
                                 RequestedByAiUtc = taskEntity.RequestedByAiUtc,
-                                FinishedByAiUtc = taskEntity.FinishedByAiUtc
+                                FinishedByAiUtc = taskEntity.FinishedByAiUtc,
+                                CreatedOrUpdatedUtc = taskEntity.CreatedOrUpdatedUtc
                             });
                         }
                     }

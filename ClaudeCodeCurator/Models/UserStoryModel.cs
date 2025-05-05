@@ -9,6 +9,9 @@ public class UserStoryModel
     // Auto-incremented number within project
     public int UserStoryNumber { get; set; }
     
+    // Creation/update timestamp
+    public DateTime CreatedOrUpdatedUtc { get; set; }
+    
     // Reference to parent project by ID only
     public Guid ProjectId { get; set; }
     

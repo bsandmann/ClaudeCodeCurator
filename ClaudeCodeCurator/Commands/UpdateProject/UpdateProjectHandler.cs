@@ -54,6 +54,7 @@ public class UpdateProjectHandler : IRequestHandler<UpdateProjectRequest, Result
 
             // Update the project name
             project.Name = request.Name;
+            project.CreatedOrUpdatedUtc = DateTime.UtcNow;
             
             // No need to call context.Update(project) since the entity is tracked
             await context.SaveChangesAsync(cancellationToken);

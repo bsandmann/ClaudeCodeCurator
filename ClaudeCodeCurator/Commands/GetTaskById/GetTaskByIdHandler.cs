@@ -45,7 +45,8 @@ public class GetTaskByIdHandler : IRequestHandler<GetTaskByIdRequest, Result<Tas
                 UserStoryId = taskEntity.UserStoryId,
                 ApprovedByUserUtc = taskEntity.ApprovedByUserUtc,
                 RequestedByAiUtc = taskEntity.RequestedByAiUtc,
-                FinishedByAiUtc = taskEntity.FinishedByAiUtc
+                FinishedByAiUtc = taskEntity.FinishedByAiUtc,
+                CreatedOrUpdatedUtc = taskEntity.CreatedOrUpdatedUtc
             };
 
             return Result.Ok(taskModel);

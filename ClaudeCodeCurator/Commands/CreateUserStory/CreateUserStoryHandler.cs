@@ -55,7 +55,8 @@ public class CreateUserStoryHandler : IRequestHandler<CreateUserStoryRequest, Re
                 Name = request.Name,
                 Description = request.Description,
                 ProjectId = request.ProjectId,
-                UserStoryNumber = project.UserStoryNumberCounter
+                UserStoryNumber = project.UserStoryNumberCounter,
+                CreatedOrUpdatedUtc = DateTime.UtcNow
             };
 
             await context.UserStories.AddAsync(userStory, cancellationToken);

@@ -72,6 +72,7 @@ public class UpdateTaskHandler : IRequestHandler<UpdateTaskRequest, Result<bool>
             // Only save if there are actual changes
             if (hasChanges)
             {
+                task.CreatedOrUpdatedUtc = DateTime.UtcNow;
                 await context.SaveChangesAsync(cancellationToken);
                 return Result.Ok(true);
             }

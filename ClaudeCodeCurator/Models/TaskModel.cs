@@ -18,6 +18,9 @@ public class TaskModel
     public DateTime? RequestedByAiUtc { get; set; }
     public DateTime? FinishedByAiUtc { get; set; }
     
+    // Creation/update timestamp
+    public DateTime CreatedOrUpdatedUtc { get; set; }
+    
     // Reference to parent user story by ID only
     public Guid UserStoryId { get; set; }
 }

@@ -9,6 +9,9 @@ public class ProjectModel
     public int UserStoryNumberCounter { get; set; }
     public int TaskNumberCounter { get; set; }
     
+    // Creation/update timestamp
+    public DateTime CreatedOrUpdatedUtc { get; set; }
+    
     // Navigation properties
     public List<UserStoryModel> UserStories { get; set; } = new();
 }

@@ -39,7 +39,8 @@ public class CreateProjectHandler : IRequestHandler<CreateProjectRequest, Result
             // Create new project
             var project = new ProjectEntity
             {
-                Name = request.Name
+                Name = request.Name,
+                CreatedOrUpdatedUtc = DateTime.UtcNow
             };
 
             await context.Projects.AddAsync(project, cancellationToken);
