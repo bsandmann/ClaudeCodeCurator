@@ -2,6 +2,7 @@
 using ClaudeCodeCurator.Commands.CreateTask;
 using ClaudeCodeCurator.Commands.CreateUserStory;
 using ClaudeCodeCurator.Commands.GetProjectById;
+using ClaudeCodeCurator.Commands.GetProjectList;
 using ClaudeCodeCurator.Commands.GetTaskById;
 using ClaudeCodeCurator.Commands.GetUserStoryById;
 using ClaudeCodeCurator.Commands.MoveTaskInProjectOrder;
@@ -45,6 +46,7 @@ public partial class IntegrationTests : IDisposable
     private readonly GetTaskByIdHandler _getTaskByIdHandler;
     private readonly GetUserStoryByIdHandler _getUserStoryByIdHandler;
     private readonly GetProjectByIdHandler _getProjectByIdHandler;
+    private readonly GetProjectListHandler _getProjectListHandler;
     private readonly RemoveTaskHandler _removeTaskHandler;
     private readonly RemoveUserStoryHandler _removeUserStoryHandler;
     private readonly RemoveProjectHandler _removeProjectHandler;
@@ -100,6 +102,7 @@ public partial class IntegrationTests : IDisposable
         this._getTaskByIdHandler = new GetTaskByIdHandler(_serviceScopeFactoryMock.Object);
         this._getUserStoryByIdHandler = new GetUserStoryByIdHandler(_serviceScopeFactoryMock.Object);
         this._getProjectByIdHandler = new GetProjectByIdHandler(_serviceScopeFactoryMock.Object);
+        this._getProjectListHandler = new GetProjectListHandler(_serviceScopeFactoryMock.Object);
         this._removeTaskHandler = new RemoveTaskHandler(_serviceScopeFactoryMock.Object);
         this._removeUserStoryHandler = new RemoveUserStoryHandler(_serviceScopeFactoryMock.Object);
         this._removeProjectHandler = new RemoveProjectHandler(_serviceScopeFactoryMock.Object);

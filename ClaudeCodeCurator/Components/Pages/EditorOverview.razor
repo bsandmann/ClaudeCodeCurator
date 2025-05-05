@@ -1,6 +1,13 @@
-<div class="h-full border-r border-gray-200 p-4">
-    <h2 class="text-xl font-semibold mb-4">Editor Overview</h2>
-    <div class="text-gray-500">
-        (Content will be added later)
+<div class="h-full border-r border-gray-200 p-4 flex flex-col">
+    <div class="flex-grow-0">
+        <h2 class="text-xl font-semibold mb-3">Editor Overview</h2>
+    </div>
+    
+    <div class="flex-grow h-3/5 overflow-hidden">
+        <EditorList />
+    </div>
+    
+    <div class="flex-grow h-2/5 overflow-hidden mt-3">
+        <EditorDetail />
     </div>
 </div>
