@@ -33,7 +33,13 @@ public class TransactionalTestDatabaseFixture
 
     public void Cleanup()
     {
-        // using var context = CreateContext();
-        // context.SaveChanges();
+        using var context = CreateContext();
+        
+        // Clear all tables
+        context.Tasks.RemoveRange(context.Tasks);
+        context.UserStories.RemoveRange(context.UserStories);
+        context.Projects.RemoveRange(context.Projects);
+        
+        context.SaveChanges();
     }
 }

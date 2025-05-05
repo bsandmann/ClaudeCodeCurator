@@ -26,6 +26,7 @@ public class CreateUserStoryHandler : IRequestHandler<CreateUserStoryRequest, Re
         {
             // Get the project - we need it to access and update the counter
             var project = await context.Projects
+                .AsTracking() // Make sure we're tracking the entity for updates
                 .FirstOrDefaultAsync(p => p.Id == request.ProjectId, cancellationToken);
 
             if (project == null)

@@ -27,6 +27,7 @@ public class CreateTaskHandler : IRequestHandler<CreateTaskRequest, Result<Guid>
             // Get the user story and its project to access the counter
             var userStory = await context.UserStories
                 .Include(us => us.Project)
+                .AsTracking() // Make sure we're tracking entities for updates
                 .FirstOrDefaultAsync(us => us.Id == request.UserStoryId, cancellationToken);
 
             if (userStory == null)
@@ -36,6 +37,8 @@ public class CreateTaskHandler : IRequestHandler<CreateTaskRequest, Result<Guid>
 
             // Get the project to access and update the counter
             var project = userStory.Project;
+            // Ensure the project is being tracked 
+            context.Entry(project).State = EntityState.Modified;
 
             // Check if a task with the same name already exists in the user story
             var existingTask = await context.Tasks

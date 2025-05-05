@@ -298,4 +298,143 @@ public partial class IntegrationTests
         Assert.NotNull(userStoryModel.Tasks); // Should never be null
         Assert.Empty(userStoryModel.Tasks);   // Should be empty
     }
+    
+    [Fact]
+    public async Task UserStoryNumber_Should_Increment_For_Each_New_UserStory()
+    {
+        // Arrange - Create a project for testing
+        var projectName = "UserStoryNumber Increment Test Project";
+        var createProjectRequest = new CreateProjectRequest(projectName);
+        var createProjectResult = await _createProjectHandler.Handle(createProjectRequest, CancellationToken.None);
+        
+        Assert.True(createProjectResult.IsSuccess);
+        var projectId = createProjectResult.Value;
+        
+        // Create first user story
+        var userStory1Name = "UserStoryNumber Test Story 1";
+        var createUserStory1Request = new CreateUserStoryRequest(userStory1Name, projectId);
+        var createUserStory1Result = await _createUserStoryHandler.Handle(createUserStory1Request, CancellationToken.None);
+        
+        Assert.True(createUserStory1Result.IsSuccess);
+        var userStory1Id = createUserStory1Result.Value;
+        
+        // Create second user story
+        var userStory2Name = "UserStoryNumber Test Story 2";
+        var createUserStory2Request = new CreateUserStoryRequest(userStory2Name, projectId);
+        var createUserStory2Result = await _createUserStoryHandler.Handle(createUserStory2Request, CancellationToken.None);
+        
+        Assert.True(createUserStory2Result.IsSuccess);
+        var userStory2Id = createUserStory2Result.Value;
+        
+        // Create third user story
+        var userStory3Name = "UserStoryNumber Test Story 3";
+        var createUserStory3Request = new CreateUserStoryRequest(userStory3Name, projectId);
+        var createUserStory3Result = await _createUserStoryHandler.Handle(createUserStory3Request, CancellationToken.None);
+        
+        Assert.True(createUserStory3Result.IsSuccess);
+        var userStory3Id = createUserStory3Result.Value;
+        
+        // Act - Get all three user stories
+        var getUserStory1Request = new GetUserStoryByIdRequest(userStory1Id);
+        var getUserStory2Request = new GetUserStoryByIdRequest(userStory2Id);
+        var getUserStory3Request = new GetUserStoryByIdRequest(userStory3Id);
+        
+        var getUserStory1Result = await _getUserStoryByIdHandler.Handle(getUserStory1Request, CancellationToken.None);
+        var getUserStory2Result = await _getUserStoryByIdHandler.Handle(getUserStory2Request, CancellationToken.None);
+        var getUserStory3Result = await _getUserStoryByIdHandler.Handle(getUserStory3Request, CancellationToken.None);
+        
+        // Assert - Verify all results are successful
+        Assert.True(getUserStory1Result.IsSuccess);
+        Assert.True(getUserStory2Result.IsSuccess);
+        Assert.True(getUserStory3Result.IsSuccess);
+        
+        var userStoryModel1 = getUserStory1Result.Value;
+        var userStoryModel2 = getUserStory2Result.Value;
+        var userStoryModel3 = getUserStory3Result.Value;
+        
+        // Verify user story numbers are sequential and start at 1
+        Assert.Equal(1, userStoryModel1.UserStoryNumber);
+        Assert.Equal(2, userStoryModel2.UserStoryNumber);
+        Assert.Equal(3, userStoryModel3.UserStoryNumber);
+    }
+    
+    [Fact]
+    public async Task UserStoryNumber_Should_Be_Project_Specific()
+    {
+        // Arrange - Create two different projects
+        var project1Name = "UserStoryNumber Project 1";
+        var project2Name = "UserStoryNumber Project 2";
+        
+        var createProject1Request = new CreateProjectRequest(project1Name);
+        var createProject2Request = new CreateProjectRequest(project2Name);
+        
+        var createProject1Result = await _createProjectHandler.Handle(createProject1Request, CancellationToken.None);
+        var createProject2Result = await _createProjectHandler.Handle(createProject2Request, CancellationToken.None);
+        
+        Assert.True(createProject1Result.IsSuccess);
+        Assert.True(createProject2Result.IsSuccess);
+        
+        var project1Id = createProject1Result.Value;
+        var project2Id = createProject2Result.Value;
+        
+        // Create user stories for the first project
+        var project1UserStory1Name = "Project1 UserStory 1";
+        var project1UserStory2Name = "Project1 UserStory 2";
+        
+        var createProject1UserStory1Request = new CreateUserStoryRequest(project1UserStory1Name, project1Id);
+        var createProject1UserStory2Request = new CreateUserStoryRequest(project1UserStory2Name, project1Id);
+        
+        var createProject1UserStory1Result = await _createUserStoryHandler.Handle(createProject1UserStory1Request, CancellationToken.None);
+        var createProject1UserStory2Result = await _createUserStoryHandler.Handle(createProject1UserStory2Request, CancellationToken.None);
+        
+        Assert.True(createProject1UserStory1Result.IsSuccess);
+        Assert.True(createProject1UserStory2Result.IsSuccess);
+        
+        var project1UserStory1Id = createProject1UserStory1Result.Value;
+        var project1UserStory2Id = createProject1UserStory2Result.Value;
+        
+        // Create user stories for the second project
+        var project2UserStory1Name = "Project2 UserStory 1";
+        var project2UserStory2Name = "Project2 UserStory 2";
+        
+        var createProject2UserStory1Request = new CreateUserStoryRequest(project2UserStory1Name, project2Id);
+        var createProject2UserStory2Request = new CreateUserStoryRequest(project2UserStory2Name, project2Id);
+        
+        var createProject2UserStory1Result = await _createUserStoryHandler.Handle(createProject2UserStory1Request, CancellationToken.None);
+        var createProject2UserStory2Result = await _createUserStoryHandler.Handle(createProject2UserStory2Request, CancellationToken.None);
+        
+        Assert.True(createProject2UserStory1Result.IsSuccess);
+        Assert.True(createProject2UserStory2Result.IsSuccess);
+        
+        var project2UserStory1Id = createProject2UserStory1Result.Value;
+        var project2UserStory2Id = createProject2UserStory2Result.Value;
+        
+        // Act - Get all user stories
+        var getProject1UserStory1Request = new GetUserStoryByIdRequest(project1UserStory1Id);
+        var getProject1UserStory2Request = new GetUserStoryByIdRequest(project1UserStory2Id);
+        var getProject2UserStory1Request = new GetUserStoryByIdRequest(project2UserStory1Id);
+        var getProject2UserStory2Request = new GetUserStoryByIdRequest(project2UserStory2Id);
+        
+        var getProject1UserStory1Result = await _getUserStoryByIdHandler.Handle(getProject1UserStory1Request, CancellationToken.None);
+        var getProject1UserStory2Result = await _getUserStoryByIdHandler.Handle(getProject1UserStory2Request, CancellationToken.None);
+        var getProject2UserStory1Result = await _getUserStoryByIdHandler.Handle(getProject2UserStory1Request, CancellationToken.None);
+        var getProject2UserStory2Result = await _getUserStoryByIdHandler.Handle(getProject2UserStory2Request, CancellationToken.None);
+        
+        // Assert - Verify all results are successful
+        Assert.True(getProject1UserStory1Result.IsSuccess);
+        Assert.True(getProject1UserStory2Result.IsSuccess);
+        Assert.True(getProject2UserStory1Result.IsSuccess);
+        Assert.True(getProject2UserStory2Result.IsSuccess);
+        
+        var project1UserStory1Model = getProject1UserStory1Result.Value;
+        var project1UserStory2Model = getProject1UserStory2Result.Value;
+        var project2UserStory1Model = getProject2UserStory1Result.Value;
+        var project2UserStory2Model = getProject2UserStory2Result.Value;
+        
+        // Verify user story numbers are sequential within each project and both start at 1
+        Assert.Equal(1, project1UserStory1Model.UserStoryNumber);
+        Assert.Equal(2, project1UserStory2Model.UserStoryNumber);
+        Assert.Equal(1, project2UserStory1Model.UserStoryNumber);
+        Assert.Equal(2, project2UserStory2Model.UserStoryNumber);
+    }
 }
