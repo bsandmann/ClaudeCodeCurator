@@ -6,11 +6,11 @@ using MediatR;
 public class SetAiTaskRequestStateRequest : IRequest<Result<bool>>
 {
     public Guid TaskId { get; }
-    public bool RequestByAi { get; }
+    public bool RequestedByAi { get; }
     
-    public SetAiTaskRequestStateRequest(Guid taskId, bool requestByAi)
+    public SetAiTaskRequestStateRequest(Guid taskId, bool requestedByAi)
     {
         TaskId = taskId;
-        RequestByAi = requestByAi;
+        RequestedByAi = requestedByAi;
     }
 }

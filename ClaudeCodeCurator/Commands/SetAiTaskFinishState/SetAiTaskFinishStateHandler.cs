@@ -39,11 +39,11 @@ public class SetAiTaskFinishStateHandler : IRequestHandler<SetAiTaskFinishStateR
             // If finishing, set current UTC time
             // If clearing finish state, set to null
             DateTime? currentValue = task.FinishedByAiUtc;
-            DateTime? newValue = request.Finish ? DateTime.UtcNow : null;
+            DateTime? newValue = request.FinishedByAi ? DateTime.UtcNow : null;
             
             // Only update if the finish status actually changes
-            bool statusChanged = (currentValue == null && request.Finish) || 
-                                 (currentValue != null && !request.Finish);
+            bool statusChanged = (currentValue == null && request.FinishedByAi) || 
+                                 (currentValue != null && !request.FinishedByAi);
             
             if (statusChanged)
             {

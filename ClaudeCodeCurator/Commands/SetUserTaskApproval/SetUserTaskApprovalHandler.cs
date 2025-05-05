@@ -39,11 +39,11 @@ public class SetUserTaskApprovalHandler : IRequestHandler<SetUserTaskApprovalReq
             // If approving, set current UTC time
             // If un-approving, set to null
             DateTime? currentValue = task.ApprovedByUserUtc;
-            DateTime? newValue = request.Approve ? DateTime.UtcNow : null;
+            DateTime? newValue = request.ApprovedByUser ? DateTime.UtcNow : null;
             
             // Only update if the approval status actually changes
-            bool statusChanged = (currentValue == null && request.Approve) || 
-                                (currentValue != null && !request.Approve);
+            bool statusChanged = (currentValue == null && request.ApprovedByUser) || 
+                                (currentValue != null && !request.ApprovedByUser);
             
             if (statusChanged)
             {

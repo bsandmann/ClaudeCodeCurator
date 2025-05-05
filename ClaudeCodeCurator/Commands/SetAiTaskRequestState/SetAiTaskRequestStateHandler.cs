@@ -39,11 +39,11 @@ public class SetAiTaskRequestStateHandler : IRequestHandler<SetAiTaskRequestStat
             // If requesting by AI, set current UTC time
             // If clearing request, set to null
             DateTime? currentValue = task.RequestedByAiUtc;
-            DateTime? newValue = request.RequestByAi ? DateTime.UtcNow : null;
+            DateTime? newValue = request.RequestedByAi ? DateTime.UtcNow : null;
             
             // Only update if the request status actually changes
-            bool statusChanged = (currentValue == null && request.RequestByAi) || 
-                                 (currentValue != null && !request.RequestByAi);
+            bool statusChanged = (currentValue == null && request.RequestedByAi) || 
+                                 (currentValue != null && !request.RequestedByAi);
             
             if (statusChanged)
             {
