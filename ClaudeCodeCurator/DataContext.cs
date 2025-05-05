@@ -18,6 +18,7 @@ public class DataContext : DbContext
     public DbSet<ProjectEntity> Projects { get; set; } = null!;
     public DbSet<UserStoryEntity> UserStories { get; set; } = null!;
     public DbSet<TaskEntity> Tasks { get; set; } = null!;
+    public DbSet<ProjectTaskOrderEntity> ProjectTaskOrders { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -69,6 +70,31 @@ public class DataContext : DbContext
             entity.HasOne(d => d.UserStory)
                 .WithMany(us => us.Tasks)
                 .HasForeignKey(d => d.UserStoryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+        
+        modelBuilder.Entity<ProjectTaskOrderEntity>(entity =>
+        {
+            entity.ToTable("ProjectTaskOrders");
+            
+            // Configure composite primary key
+            entity.HasKey(e => new { e.ProjectId, e.TaskId });
+            
+            // Create a unique constraint for project+position combination
+            entity.HasIndex(e => new { e.ProjectId, e.Position }).IsUnique();
+            
+            // Define relationship with Project
+            entity.HasOne(d => d.Project)
+                .WithMany(p => p.OrderedTasks)
+                .HasForeignKey(d => d.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+                
+            // Define relationship with Task
+            entity.HasOne(d => d.Task)
+                .WithMany(t => t.ProjectOrders)
+                .HasForeignKey(d => d.TaskId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
         });

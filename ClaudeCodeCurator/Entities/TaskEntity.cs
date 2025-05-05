@@ -33,4 +33,7 @@ public class TaskEntity
     
     // Navigation property
     public UserStoryEntity UserStory { get; set; } = null!;
+    
+    // Navigation property - project ordering relationships
+    public virtual ICollection<ProjectTaskOrderEntity> ProjectOrders { get; set; } = new List<ProjectTaskOrderEntity>();
 }

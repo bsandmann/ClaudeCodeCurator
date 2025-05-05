@@ -4,6 +4,7 @@ using ClaudeCodeCurator.Commands.CreateUserStory;
 using ClaudeCodeCurator.Commands.GetProjectById;
 using ClaudeCodeCurator.Commands.GetTaskById;
 using ClaudeCodeCurator.Commands.GetUserStoryById;
+using ClaudeCodeCurator.Commands.MoveTaskInProjectOrder;
 using ClaudeCodeCurator.Commands.RemoveProject;
 using ClaudeCodeCurator.Commands.RemoveTask;
 using ClaudeCodeCurator.Commands.RemoveUserStory;
@@ -49,6 +50,7 @@ public partial class IntegrationTests : IDisposable
     private readonly SetUserTaskApprovalHandler _setUserTaskApprovalHandler;
     private readonly SetAiTaskRequestStateHandler _setAiTaskRequestStateHandler;
     private readonly SetAiTaskFinishStateHandler _setAiTaskFinishStateHandler;
+    private readonly MoveTaskInProjectOrderHandler _moveTaskInProjectOrderHandler;
     public IntegrationTests(TransactionalTestDatabaseFixture fixture)
     {
         this.Fixture = fixture;
@@ -93,6 +95,7 @@ public partial class IntegrationTests : IDisposable
         this._setUserTaskApprovalHandler = new SetUserTaskApprovalHandler(_serviceScopeFactoryMock.Object);
         this._setAiTaskRequestStateHandler = new SetAiTaskRequestStateHandler(_serviceScopeFactoryMock.Object);
         this._setAiTaskFinishStateHandler = new SetAiTaskFinishStateHandler(_serviceScopeFactoryMock.Object);
+        this._moveTaskInProjectOrderHandler = new MoveTaskInProjectOrderHandler(_serviceScopeFactoryMock.Object);
 
         // Initialize handlers with the mocked service scope factory
     }

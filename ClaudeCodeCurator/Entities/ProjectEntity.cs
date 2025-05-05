@@ -20,4 +20,7 @@ public class ProjectEntity
     
     // Navigation property - collection of user stories
     public virtual ICollection<UserStoryEntity> UserStories { get; set; } = new List<UserStoryEntity>();
+    
+    // Navigation property - ordered tasks relationship
+    public virtual ICollection<ProjectTaskOrderEntity> OrderedTasks { get; set; } = new List<ProjectTaskOrderEntity>();
 }
