@@ -1,4 +1,3 @@
-@page "/editor"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using ClaudeCodeCurator.Commands.GetProjectByLastUsed
 @using ClaudeCodeCurator.Commands.CreateProject
@@ -25,13 +24,13 @@
     else if (_project != null)
     {
         <div class="flex-grow @(_isDetailVisible ? "h-3/5" : "h-full") overflow-hidden">
-            <ClaudeCodeCurator.Components.EditorList Project="@_project" />
+            <ClaudeCodeCurator.Components.Features.EditorList Project="@_project" />
         </div>
         
         @if (_isDetailVisible)
         {
             <div class="flex-grow overflow-hidden mt-2 border-t bg-white border-gray-500" style="height: 40%; min-height: 600px; max-height: 600px;">
-                <ClaudeCodeCurator.Components.EditorDetail 
+                <ClaudeCodeCurator.Components.Features.EditorDetail
                     OnViewRefreshNeeded="HandleRefreshNeeded" 
                     OnDetailClosed="HandleDetailClosed" />
             </div>
