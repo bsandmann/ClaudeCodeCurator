@@ -4,7 +4,7 @@
 @using ClaudeCodeCurator.Common
 @inject EditorState EditorState
 
-<div class="border-l-2 border-gray-100 pl-2 py-1 hover:bg-gray-200 rounded-sm cursor-pointer transition-colors" @onclick="EditTask">
+<div class="border-l-2 border-gray-100 pl-2 py-1 @(IsSelected ? "bg-gray-200" : "") hover:bg-gray-200 rounded-sm cursor-pointer transition-colors" @onclick="EditTask">
     <div class="flex items-center">
         <div class="flex-grow">
             <div class="flex items-center">
@@ -43,6 +43,11 @@
     
     [Parameter]
     public UserStoryModel UserStory { get; set; } = null!;
+    
+    private bool IsSelected => 
+        (EditorState.CurrentMode == EditorState.DetailViewMode.EditTask || 
+         EditorState.CurrentMode == EditorState.DetailViewMode.ViewTask) &&
+        EditorState.SelectedTask?.Id == Task.Id;
     
     private void ViewTask()
     {

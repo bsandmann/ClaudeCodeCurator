@@ -4,8 +4,6 @@
 @inject EditorState EditorState
 
 <div class="mt-4">
-    <h4 class="text-sm font-medium text-gray-700 mb-2">User Stories</h4>
-    
     <div class="space-y-2 pl-2">
         @foreach (var userStory in Project.UserStories.OrderBy(us => us.UserStoryNumber))
         {
@@ -13,20 +11,9 @@
         }
     </div>
     
-    <div class="mt-3">
-        <button @onclick="CreateUserStory" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
-            <span class="material-symbols-outlined text-sm mr-1">add</span>
-            Add User Story
-        </button>
-    </div>
 </div>
 
 @code {
     [Parameter]
     public ProjectModel Project { get; set; } = null!;
-    
-    private void CreateUserStory()
-    {
-        EditorState.ShowCreateUserStory(Project);
-    }
 }
