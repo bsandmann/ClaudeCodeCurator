@@ -27,13 +27,18 @@
     }
     else if (_project != null)
     {
-        <div class="flex-grow h-3/5 overflow-hidden">
+        <div class="flex-grow @(_isDetailVisible ? "h-3/5" : "h-full") overflow-hidden">
             <ClaudeCodeCurator.Components.EditorList Project="@_project" />
         </div>
         
-        <div class="flex-grow h-2/5 overflow-hidden mt-3">
-            <ClaudeCodeCurator.Components.EditorDetail OnViewRefreshNeeded="HandleRefreshNeeded" />
-        </div>
+        @if (_isDetailVisible)
+        {
+            <div class="flex-grow overflow-hidden mt-3" style="height: 40%; min-height: 600px; max-height: 600px;">
+                <ClaudeCodeCurator.Components.EditorDetail 
+                    OnViewRefreshNeeded="HandleRefreshNeeded" 
+                    OnDetailClosed="HandleDetailClosed" />
+            </div>
+        }
     }
     else
     {
@@ -47,6 +52,7 @@
     private bool _loading = true;
     private string? _errorMessage;
     private ProjectModel? _project;
+    private bool _isDetailVisible = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,6 +71,8 @@
     // Define the async callback for state changes
     private async Task OnStateChanged()
     {
+        // Update the detail visibility based on the EditorState
+        _isDetailVisible = EditorState.CurrentMode != EditorState.DetailViewMode.None;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -79,6 +87,9 @@
             if (result.IsSuccess)
             {
                 _project = result.Value;
+                
+                // Set initial detail visibility based on EditorState
+                _isDetailVisible = EditorState.CurrentMode != EditorState.DetailViewMode.None;
             }
             else
             {
@@ -101,5 +112,11 @@
         {
             await LoadLatestProject();
         }
+    }
+    
+    private void HandleDetailClosed()
+    {
+        _isDetailVisible = false;
+        StateHasChanged();
     }
 }

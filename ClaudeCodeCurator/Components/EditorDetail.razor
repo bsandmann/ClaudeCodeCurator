@@ -6,6 +6,13 @@
 @inject EditorState EditorState
 
 <div class="border border-gray-200 rounded-md">
+    <div class="flex justify-between items-center border-b border-gray-200 p-2">
+        <h3 class="text-sm font-medium">Details</h3>
+        <button @onclick="CloseDetail" class="text-gray-500 hover:text-gray-700">
+            <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+    </div>
+    
     @switch (EditorState.CurrentMode)
     {
         case EditorState.DetailViewMode.CreateUserStory:
@@ -95,6 +102,9 @@
     [Parameter]
     public EventCallback<bool> OnViewRefreshNeeded { get; set; }
     
+    [Parameter]
+    public EventCallback OnDetailClosed { get; set; }
+    
     protected override void OnInitialized()
     {
         EditorState.StateChanged += OnStateChanged;
@@ -149,6 +159,12 @@
         {
             await OnViewRefreshNeeded.InvokeAsync(true);
         }
+    }
+    
+    private void CloseDetail()
+    {
+        EditorState.ClearDetailView();
+        OnDetailClosed.InvokeAsync();
     }
     
     private string GetTaskTypeClass(TaskType type)
