@@ -97,6 +97,7 @@ public class SetUserTaskApprovalHandler : IRequestHandler<SetUserTaskApprovalReq
                     {
                         // Remove from ordered list when unapproved
                         var existingOrder = await context.ProjectTaskOrders
+                            .AsTracking()
                             .FirstOrDefaultAsync(o => o.ProjectId == projectId && o.TaskId == task.Id, cancellationToken);
                             
                         if (existingOrder != null)

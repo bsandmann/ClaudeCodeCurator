@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using ClaudeCodeCurator;
 using ClaudeCodeCurator.Common;
 using ClaudeCodeCurator.Components;
-using ClaudeCodeCurator.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
@@ -38,7 +37,6 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddLogging(p =>
     p.AddConsole()
 );
-builder.Services.AddScoped<ProjectTaskOrderService>();
 
 var app = builder.Build();
 
