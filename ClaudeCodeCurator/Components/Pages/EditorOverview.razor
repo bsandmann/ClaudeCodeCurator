@@ -8,11 +8,7 @@
 @inject EditorState EditorState
 @implements IDisposable
 
-<div class="h-full border-r border-gray-200 p-4 flex flex-col">
-    <div class="flex-grow-0">
-        <h2 class="text-xl font-semibold mb-3">Editor Overview</h2>
-    </div>
-    
+<div class="h-full border-r border-gray-200 p-2 flex flex-col">
     @if (_loading)
     {
         <div class="flex justify-center items-center h-24">
@@ -21,7 +17,7 @@
     }
     else if (_errorMessage != null)
     {
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-2" role="alert">
             <p>@_errorMessage</p>
         </div>
     }
@@ -33,7 +29,7 @@
         
         @if (_isDetailVisible)
         {
-            <div class="flex-grow overflow-hidden mt-3" style="height: 40%; min-height: 600px; max-height: 600px;">
+            <div class="flex-grow overflow-hidden mt-2" style="height: 40%; min-height: 600px; max-height: 600px;">
                 <ClaudeCodeCurator.Components.EditorDetail 
                     OnViewRefreshNeeded="HandleRefreshNeeded" 
                     OnDetailClosed="HandleDetailClosed" />
@@ -42,7 +38,7 @@
     }
     else
     {
-        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" role="alert">
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 mb-2" role="alert">
             <p>No projects found. Please create a new project to get started.</p>
         </div>
     }
