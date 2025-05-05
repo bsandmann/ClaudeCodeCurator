@@ -3,7 +3,7 @@
 @using ClaudeCodeCurator.Common
 @inject EditorState EditorState
 
-<div class="@(IsSelected ? "bg-gray-200" : "bg-gray-100") rounded-md p-2 border-l-4 border-blue-500 hover:bg-gray-200 cursor-pointer transition-colors" @onclick="EditProject">
+<div class="@(IsSelected ? "bg-gray-200" : "bg-gray-100") rounded-md p-2 hover:bg-gray-200 cursor-pointer transition-colors" @onclick="EditProject">
     <div class="flex items-center">
         <div class="flex-grow">
             <h3 class="text-lg font-semibold text-blue-700">@Project.Name</h3>

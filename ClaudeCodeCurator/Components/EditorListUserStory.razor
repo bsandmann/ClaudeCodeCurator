@@ -3,8 +3,8 @@
 @using ClaudeCodeCurator.Common
 @inject EditorState EditorState
 
-<div class="border-l-2 border-gray-300 pl-3 py-2 rounded">
-    <div class="flex items-center @(IsSelected ? "bg-gray-200" : "") hover:bg-gray-200 -ml-3 pl-3 py-1 rounded cursor-pointer transition-colors" @onclick="EditUserStory">
+<div class="py-1 rounded">
+    <div class="flex items-center @(IsSelected ? "bg-gray-200" : "bg-gray-100") hover:bg-gray-200 p-2 rounded-md cursor-pointer transition-colors" @onclick="EditUserStory">
         <div class="flex-grow">
             <div class="flex items-center">
                 <span class="text-xs bg-gray-200 rounded px-1 mr-2">US-@UserStory.UserStoryNumber</span>
@@ -20,7 +20,7 @@
     
     @if (UserStory.Tasks.Any())
     {
-        <div class="ml-2 mt-1 space-y-1">
+        <div class="ml-4 mt-2 space-y-1">
             @foreach (var task in UserStory.Tasks.OrderBy(t => t.TaskNumber))
             {
                 <EditorListTask Task="@task" UserStory="@UserStory" />

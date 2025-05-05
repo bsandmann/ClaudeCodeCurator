@@ -4,7 +4,7 @@
 @inject EditorState EditorState
 
 <div class="mt-4">
-    <div class="space-y-2 pl-2">
+    <div class="space-y-2">
         @foreach (var userStory in Project.UserStories.OrderBy(us => us.UserStoryNumber))
         {
             <EditorListUserStory UserStory="@userStory" />

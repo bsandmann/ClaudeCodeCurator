@@ -4,15 +4,15 @@
 @using ClaudeCodeCurator.Common
 @inject EditorState EditorState
 
-<div class="border-l-2 border-gray-100 pl-2 py-1 @(IsSelected ? "bg-gray-200" : "") hover:bg-gray-200 rounded-sm cursor-pointer transition-colors" @onclick="EditTask">
+<div class="@(IsSelected ? "bg-gray-200" : "bg-gray-100") p-2 hover:bg-gray-200 rounded-md cursor-pointer transition-colors" @onclick="EditTask">
     <div class="flex items-center">
         <div class="flex-grow">
             <div class="flex items-center">
-                <span class="text-xs px-1.5 py-0.5 rounded @GetTaskTypeClass(Task.Type) mr-1">
+                <span class="text-xs bg-gray-200 rounded px-1 mr-1">T-@Task.TaskNumber</span>
+                <span class="text-xs font-medium truncate mr-1">@Task.Name</span>
+                <span class="text-xs px-1.5 py-0.5 rounded @GetTaskTypeClass(Task.Type)">
                     @Task.Type
                 </span>
-                <span class="text-xs bg-gray-200 rounded px-1 mr-1">T-@Task.TaskNumber</span>
-                <span class="text-xs font-medium truncate">@Task.Name</span>
             </div>
             
             <div class="flex items-center mt-0.5 space-x-1">
