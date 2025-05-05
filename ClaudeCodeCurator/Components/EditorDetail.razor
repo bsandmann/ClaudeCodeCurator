@@ -1,11 +1,78 @@
 @namespace ClaudeCodeCurator.Components
 @using ClaudeCodeCurator.Models
+@using ClaudeCodeCurator.Common
+@implements IDisposable
+@inject EditorState EditorState
 
-<div class="border border-gray-200 rounded-md p-3">
-    <h3 class="text-lg font-semibold mb-3">Detail View</h3>
-    <p class="text-sm text-gray-500">Select a user story or task to view details.</p>
+<div class="border border-gray-200 rounded-md">
+    @switch (EditorState.CurrentMode)
+    {
+        case EditorState.DetailViewMode.CreateUserStory:
+            <EditorCreateUserStory OnUserStoryCreated="HandleUserStoryCreated" />
+            break;
+            
+        case EditorState.DetailViewMode.EditUserStory:
+            <EditorEditUserStory OnUserStoryUpdated="HandleUserStoryUpdated" />
+            break;
+            
+        case EditorState.DetailViewMode.ViewUserStory:
+            if (EditorState.SelectedUserStory != null)
+            {
+                <div class="p-3">
+                    <h3 class="text-lg font-semibold mb-1">@EditorState.SelectedUserStory.Name</h3>
+                    <div class="text-xs text-gray-500 mb-3">User Story #@EditorState.SelectedUserStory.UserStoryNumber</div>
+                    
+                    @if (!string.IsNullOrEmpty(EditorState.SelectedUserStory.Description))
+                    {
+                        <p class="text-sm mb-4">@EditorState.SelectedUserStory.Description</p>
+                    }
+                    
+                    <div class="flex justify-end">
+                        <button @onclick="() => EditorState.ShowEditUserStory(EditorState.SelectedUserStory)" 
+                                class="text-sm text-blue-600 hover:text-blue-800">
+                            Edit
+                        </button>
+                    </div>
+                </div>
+            }
+            break;
+            
+        default:
+            <div class="p-3">
+                <h3 class="text-lg font-semibold mb-3">Detail View</h3>
+                <p class="text-sm text-gray-500">Select a user story or task to view details.</p>
+            </div>
+            break;
+    }
 </div>
 
 @code {
-    // This will be expanded later to show details of selected items
+    [Parameter]
+    public EventCallback<bool> OnViewRefreshNeeded { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        EditorState.StateChanged += StateHasChanged;
+    }
+    
+    public void Dispose()
+    {
+        EditorState.StateChanged -= StateHasChanged;
+    }
+    
+    private async Task HandleUserStoryCreated(bool success)
+    {
+        if (success)
+        {
+            await OnViewRefreshNeeded.InvokeAsync(true);
+        }
+    }
+    
+    private async Task HandleUserStoryUpdated(bool success)
+    {
+        if (success)
+        {
+            await OnViewRefreshNeeded.InvokeAsync(true);
+        }
+    }
 }

@@ -2,8 +2,11 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using ClaudeCodeCurator.Commands.GetProjectByLastUsed
 @using ClaudeCodeCurator.Models
+@using ClaudeCodeCurator.Common
 @using MediatR
 @inject IMediator Mediator
+@inject EditorState EditorState
+@implements IDisposable
 
 <div class="h-full border-r border-gray-200 p-4 flex flex-col">
     <div class="flex-grow-0">
@@ -29,7 +32,7 @@
         </div>
         
         <div class="flex-grow h-2/5 overflow-hidden mt-3">
-            <ClaudeCodeCurator.Components.EditorDetail />
+            <ClaudeCodeCurator.Components.EditorDetail OnViewRefreshNeeded="HandleRefreshNeeded" />
         </div>
     }
     else
@@ -47,7 +50,16 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Subscribe to state change events
+        EditorState.StateChanged += StateHasChanged;
+        
         await LoadLatestProject();
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe from state change events
+        EditorState.StateChanged -= StateHasChanged;
     }
 
     private async Task LoadLatestProject()
@@ -74,6 +86,14 @@
         finally
         {
             _loading = false;
+        }
+    }
+    
+    private async Task HandleRefreshNeeded(bool needsRefresh)
+    {
+        if (needsRefresh)
+        {
+            await LoadLatestProject();
         }
     }
 }

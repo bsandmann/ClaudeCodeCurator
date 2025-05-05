@@ -1,0 +1,146 @@
+@namespace ClaudeCodeCurator.Components
+@using ClaudeCodeCurator.Commands.UpdateUserStory
+@using ClaudeCodeCurator.Models
+@using ClaudeCodeCurator.Common
+@using MediatR
+@using System.ComponentModel.DataAnnotations
+@inject IMediator Mediator
+@inject EditorState EditorState
+
+<div class="border border-gray-200 rounded-md p-4">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Edit User Story</h3>
+        <button @onclick="Cancel" class="text-gray-400 hover:text-gray-600" title="Cancel">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    @if (EditorState.SelectedUserStory != null)
+    {
+        <div class="text-sm text-gray-500 mb-3">
+            User Story #@EditorState.SelectedUserStory.UserStoryNumber
+        </div>
+
+        <EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-red-500 text-sm mb-4" />
+
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <InputText id="name" @bind-Value="_model.Name" class="w-full p-2 border rounded-md" placeholder="Enter user story name" />
+                <ValidationMessage For="@(() => _model.Name)" class="text-red-500 text-sm" />
+            </div>
+
+            <div class="mb-4">
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <InputTextArea id="description" @bind-Value="_model.Description" class="w-full p-2 border rounded-md h-24" placeholder="Enter user story description (optional)" />
+            </div>
+
+            <div class="flex justify-end space-x-2">
+                <button type="button" @onclick="Cancel" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" disabled="@_isSubmitting">
+                    @if (_isSubmitting)
+                    {
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>Save</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
+    }
+    else
+    {
+        <div class="text-red-500">No user story selected for editing.</div>
+    }
+
+    @if (_errorMessage != null)
+    {
+        <div class="mt-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700" role="alert">
+            <p>@_errorMessage</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<bool> OnUserStoryUpdated { get; set; }
+
+    private class UserStoryFormModel
+    {
+        [Required(ErrorMessage = "Name is required.")]
+        [StringLength(200, ErrorMessage = "Name cannot exceed 200 characters.")]
+        public string Name { get; set; } = string.Empty;
+        
+        public string? Description { get; set; }
+    }
+
+    private UserStoryFormModel _model = new();
+    private bool _isSubmitting = false;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        if (EditorState.SelectedUserStory != null)
+        {
+            // Initialize form with the selected user story data
+            _model.Name = EditorState.SelectedUserStory.Name;
+            _model.Description = EditorState.SelectedUserStory.Description;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (EditorState.SelectedUserStory == null)
+        {
+            _errorMessage = "No user story selected for update.";
+            return;
+        }
+
+        try
+        {
+            _isSubmitting = true;
+            _errorMessage = null;
+
+            var request = new UpdateUserStoryRequest(
+                EditorState.SelectedUserStory.Id,
+                _model.Name,
+                _model.Description
+            );
+
+            var result = await Mediator.Send(request);
+
+            if (result.IsSuccess)
+            {
+                // Notify parent component that a user story was updated
+                await OnUserStoryUpdated.InvokeAsync(true);
+                
+                // Clear editor state to close this form
+                EditorState.ClearDetailView();
+            }
+            else
+            {
+                _errorMessage = result.Errors.FirstOrDefault()?.Message ?? "Failed to update user story.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        EditorState.ClearDetailView();
+    }
+}
