@@ -1,5 +1,6 @@
 @namespace ClaudeCodeCurator.Components
 @using ClaudeCodeCurator.Commands.UpdateUserStory
+@using ClaudeCodeCurator.Commands.RemoveUserStory
 @using ClaudeCodeCurator.Models
 @using ClaudeCodeCurator.Common
 @using MediatR
@@ -16,6 +17,29 @@
             User Story #@EditorState.SelectedUserStory.UserStoryNumber
         </div>
 
+        @if (_showDeleteConfirmation)
+        {
+            <div class="mb-4 p-3 border border-red-300 bg-red-50 rounded-md">
+                <p class="font-medium text-red-700 mb-2">Are you sure you want to delete this user story?</p>
+                <p class="text-sm text-gray-600 mb-3">This action will also delete all tasks associated with this user story and cannot be undone.</p>
+                <div class="flex space-x-2">
+                    <button @onclick="CancelDelete" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm">
+                        Cancel
+                    </button>
+                    <button @onclick="ConfirmDelete" class="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm" disabled="@_isDeleting">
+                        @if (_isDeleting)
+                        {
+                            <span>Deleting...</span>
+                        }
+                        else
+                        {
+                            <span>Delete</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        }
+
         <EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-red-500 text-sm mb-3" />
@@ -31,20 +55,25 @@
                 <InputTextArea id="description" @bind-Value="_model.Description" class="w-full p-2 border rounded-md h-24" placeholder="Enter user story description (optional)" />
             </div>
 
-            <div class="flex justify-end space-x-2">
-                <button type="button" @onclick="Cancel" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm">
-                    Cancel
+            <div class="flex justify-between">
+                <button type="button" @onclick="ShowDeleteConfirmation" class="px-3 py-1 border border-red-300 text-red-700 rounded-md hover:bg-red-50 text-sm">
+                    <span class="material-symbols-outlined text-sm">delete</span> Delete
                 </button>
-                <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm" disabled="@_isSubmitting">
-                    @if (_isSubmitting)
-                    {
-                        <span>Saving...</span>
-                    }
-                    else
-                    {
-                        <span>Save</span>
-                    }
-                </button>
+                <div class="flex space-x-2">
+                    <button type="button" @onclick="Cancel" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm" disabled="@_isSubmitting">
+                        @if (_isSubmitting)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save</span>
+                        }
+                    </button>
+                </div>
             </div>
         </EditForm>
     }
@@ -76,6 +105,8 @@
 
     private UserStoryFormModel _model = new();
     private bool _isSubmitting = false;
+    private bool _isDeleting = false;
+    private bool _showDeleteConfirmation = false;
     private string? _errorMessage;
 
     protected override void OnInitialized()
@@ -135,5 +166,57 @@
     private void Cancel()
     {
         EditorState.ClearDetailView();
+    }
+    
+    private void ShowDeleteConfirmation()
+    {
+        _showDeleteConfirmation = true;
+    }
+    
+    private void CancelDelete()
+    {
+        _showDeleteConfirmation = false;
+    }
+    
+    private async Task ConfirmDelete()
+    {
+        if (EditorState.SelectedUserStory == null)
+        {
+            _errorMessage = "No user story selected for deletion.";
+            return;
+        }
+
+        try
+        {
+            _isDeleting = true;
+            _errorMessage = null;
+
+            // Use cascade delete to remove all associated tasks
+            var request = new RemoveUserStoryRequest(EditorState.SelectedUserStory.Id, cascadeTasks: true);
+            var result = await Mediator.Send(request);
+
+            if (result.IsSuccess)
+            {
+                // Notify parent component that a user story was deleted
+                await OnUserStoryUpdated.InvokeAsync(true);
+                
+                // Clear editor state to close this form
+                EditorState.ClearDetailView();
+            }
+            else
+            {
+                _errorMessage = result.Errors.FirstOrDefault()?.Message ?? "Failed to delete user story.";
+                _showDeleteConfirmation = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred: {ex.Message}";
+            _showDeleteConfirmation = false;
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
     }
 }

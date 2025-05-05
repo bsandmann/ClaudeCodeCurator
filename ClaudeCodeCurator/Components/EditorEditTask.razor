@@ -1,5 +1,6 @@
 @namespace ClaudeCodeCurator.Components
 @using ClaudeCodeCurator.Commands.UpdateTask
+@using ClaudeCodeCurator.Commands.RemoveTask
 @using ClaudeCodeCurator.Models
 @using ClaudeCodeCurator.Entities
 @using ClaudeCodeCurator.Common
@@ -16,6 +17,29 @@
         <div class="text-sm text-gray-500 mb-2">
             Task #@EditorState.SelectedTask.TaskNumber for User Story #@EditorState.SelectedUserStory.UserStoryNumber
         </div>
+
+        @if (_showDeleteConfirmation)
+        {
+            <div class="mb-4 p-3 border border-red-300 bg-red-50 rounded-md">
+                <p class="font-medium text-red-700 mb-2">Are you sure you want to delete this task?</p>
+                <p class="text-sm text-gray-600 mb-3">This action cannot be undone.</p>
+                <div class="flex space-x-2">
+                    <button @onclick="CancelDelete" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm">
+                        Cancel
+                    </button>
+                    <button @onclick="ConfirmDelete" class="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm" disabled="@_isDeleting">
+                        @if (_isDeleting)
+                        {
+                            <span>Deleting...</span>
+                        }
+                        else
+                        {
+                            <span>Delete</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        }
 
         <EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator />
@@ -43,20 +67,25 @@
                 <ValidationMessage For="@(() => _model.PromptBody)" class="text-red-500 text-sm" />
             </div>
 
-            <div class="flex justify-end space-x-2">
-                <button type="button" @onclick="Cancel" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm">
-                    Cancel
+            <div class="flex justify-between">
+                <button type="button" @onclick="ShowDeleteConfirmation" class="px-3 py-1 border border-red-300 text-red-700 rounded-md hover:bg-red-50 text-sm">
+                    <span class="material-symbols-outlined text-sm">delete</span> Delete
                 </button>
-                <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm" disabled="@_isSubmitting">
-                    @if (_isSubmitting)
-                    {
-                        <span>Saving...</span>
-                    }
-                    else
-                    {
-                        <span>Save</span>
-                    }
-                </button>
+                <div class="flex space-x-2">
+                    <button type="button" @onclick="Cancel" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm" disabled="@_isSubmitting">
+                        @if (_isSubmitting)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save</span>
+                        }
+                    </button>
+                </div>
             </div>
         </EditForm>
     }
@@ -91,6 +120,8 @@
 
     private TaskFormModel _model = new();
     private bool _isSubmitting = false;
+    private bool _isDeleting = false;
+    private bool _showDeleteConfirmation = false;
     private string? _errorMessage;
 
     protected override void OnInitialized()
@@ -152,5 +183,56 @@
     private void Cancel()
     {
         EditorState.ClearDetailView();
+    }
+    
+    private void ShowDeleteConfirmation()
+    {
+        _showDeleteConfirmation = true;
+    }
+    
+    private void CancelDelete()
+    {
+        _showDeleteConfirmation = false;
+    }
+    
+    private async Task ConfirmDelete()
+    {
+        if (EditorState.SelectedTask == null)
+        {
+            _errorMessage = "No task selected for deletion.";
+            return;
+        }
+
+        try
+        {
+            _isDeleting = true;
+            _errorMessage = null;
+
+            var request = new RemoveTaskRequest(EditorState.SelectedTask.Id);
+            var result = await Mediator.Send(request);
+
+            if (result.IsSuccess)
+            {
+                // Notify parent component that a task was deleted
+                await OnTaskUpdated.InvokeAsync(true);
+                
+                // Clear editor state to close this form
+                EditorState.ClearDetailView();
+            }
+            else
+            {
+                _errorMessage = result.Errors.FirstOrDefault()?.Message ?? "Failed to delete task.";
+                _showDeleteConfirmation = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred: {ex.Message}";
+            _showDeleteConfirmation = false;
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
     }
 }
