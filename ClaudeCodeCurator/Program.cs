@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using ClaudeCodeCurator;
 using ClaudeCodeCurator.Commands.CreateProject;
+using ClaudeCodeCurator.Commands.GetProjectByLastUsed;
 using ClaudeCodeCurator.Commands.GetProjectList;
 using ClaudeCodeCurator.Common;
 using ClaudeCodeCurator.Components;
@@ -74,24 +75,40 @@ using (var scope = app.Services.CreateScope())
         throw; // Re-throw to prevent app from starting with inconsistent database state
     }
     
-    // Get the list of existing projects
-    var projectListResult = await mediator.Send(new GetProjectListRequest());
+    // Try to get the most recently used project first
+    var getByLastUsedResult = await mediator.Send(new GetProjectByLastUsedRequest());
     
-    if (projectListResult.IsSuccess && projectListResult.Value.Count == 0)
+    if (!getByLastUsedResult.IsSuccess)
     {
-        // No projects exist, create a default project
-        logger.LogInformation("No projects found. Creating default project...");
-        var defaultProjectName = "My first project";
-        var createProjectResult = await mediator.Send(new CreateProjectRequest(defaultProjectName));
+        // No recently used project found, fall back to listing all projects
+        logger.LogInformation("No recently used project found. Checking if any projects exist...");
         
-        if (createProjectResult.IsSuccess)
+        var projectListResult = await mediator.Send(new GetProjectListRequest());
+        
+        if (projectListResult.IsSuccess && projectListResult.Value.Count == 0)
         {
-            logger.LogInformation($"Default project '{defaultProjectName}' created successfully");
+            // No projects exist, create a default project
+            logger.LogInformation("No projects found. Creating default project...");
+            var defaultProjectName = "My first project";
+            var createProjectResult = await mediator.Send(new CreateProjectRequest(defaultProjectName));
+            
+            if (createProjectResult.IsSuccess)
+            {
+                logger.LogInformation($"Default project '{defaultProjectName}' created successfully");
+            }
+            else
+            {
+                logger.LogError($"Failed to create default project: {string.Join(", ", createProjectResult.Errors.Select(e => e.Message))}");
+            }
         }
         else
         {
-            logger.LogError($"Failed to create default project: {string.Join(", ", createProjectResult.Errors.Select(e => e.Message))}");
+            logger.LogInformation($"Found {projectListResult.Value.Count} existing projects");
         }
+    }
+    else
+    {
+        logger.LogInformation($"Retrieved last used project: {getByLastUsedResult.Value.Name}");
     }
 }
 

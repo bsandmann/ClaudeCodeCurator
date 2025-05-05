@@ -147,12 +147,5 @@ public partial class IntegrationTests
         Assert.NotNull(project.UserStories);
     }
     
-    private async Task CleanupProjects()
-    {
-        // Use the TransactionalTestDatabaseFixture's Cleanup method
-        Fixture.Cleanup();
-        
-        // Wait a bit to ensure cleanup completes
-        await Task.Delay(100);
-    }
+    // CleanupProjects method moved to IntegrationTests parent class
 }
