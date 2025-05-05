@@ -1,7 +1,9 @@
 namespace ClaudeCodeCurator.Commands.SetUserTaskApproval;
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 using ClaudeCodeCurator.Entities;
 using FluentResults;
 using MediatR;
