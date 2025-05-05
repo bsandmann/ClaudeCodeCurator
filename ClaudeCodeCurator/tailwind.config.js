@@ -397,6 +397,8 @@ module.exports = {
                 144: '36rem', // 576px
             },
             fontFamily: {
+                sans: ['Roboto', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                serif: ['Roboto Slab', 'ui-serif', 'Georgia', 'serif'],
                 'roboto': ['Roboto', 'sans-serif'],
                 'roboto-slab': ['Roboto Slab', 'serif'],
             },

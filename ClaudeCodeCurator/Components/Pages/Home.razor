@@ -1,7 +1,20 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Claude Code Curator</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="flex flex-col h-screen">
+    <TopBar />
+    
+    <div class="flex flex-1 overflow-hidden">
+        <div class="w-1/2">
+            <EditorOverview />
+        </div>
+        <div class="w-1/2">
+            <TaskOverview />
+        </div>
+    </div>
+</div>
 
-Welcome to your new app.
+@code {
+    
+}

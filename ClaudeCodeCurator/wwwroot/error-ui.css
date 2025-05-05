@@ -1,0 +1,7 @@
+#blazor-error-ui {
+    display: none;
+}
+
+#blazor-error-ui.show {
+    display: flex;
+}
