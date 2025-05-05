@@ -117,6 +117,8 @@
   `npx tailwindcss -i ./TailwindStyles/app.css -o ./wwwroot/app.css --watch`
 - **Remove other CSS**: Remove all other CSS files from the project. Do not use any other CSS framework (e.g.
   bootstrap).
+- **Icons**: For icons use the material design icons like this:   <span class="material-symbols-outlined">close</span>
+
 
 ## Testing
 
