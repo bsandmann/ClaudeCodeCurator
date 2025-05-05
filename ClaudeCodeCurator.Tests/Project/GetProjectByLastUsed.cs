@@ -11,7 +11,7 @@ namespace ClaudeCodeCurator.Tests;
 public partial class IntegrationTests
 {
     [Fact]
-    public async Task GetProjectByLastUsed_Returns_Failure_When_No_Tasks_Exist()
+    public async Task GetProjectByLastUsed_Returns_Project_With_Most_Recent_Project_When_No_Tasks_Or_UserStories_Exist()
     {
         // Arrange - Ensure clean database
         await CleanupProjects();
@@ -21,14 +21,81 @@ public partial class IntegrationTests
         var createProjectRequest = new CreateProjectRequest(projectName);
         var createProjectResult = await _createProjectHandler.Handle(createProjectRequest, CancellationToken.None);
         Assert.True(createProjectResult.IsSuccess);
+        var projectId = createProjectResult.Value;
         
         // Act - Attempt to get project by last used
         var getProjectByLastUsedRequest = new GetProjectByLastUsedRequest();
         var getProjectByLastUsedResult = await _getProjectByLastUsedHandler.Handle(getProjectByLastUsedRequest, CancellationToken.None);
         
-        // Assert - Should return failure since no tasks exist
+        // Assert - Should return the project even though no tasks or user stories exist
+        Assert.True(getProjectByLastUsedResult.IsSuccess);
+        var projectModel = getProjectByLastUsedResult.Value;
+        Assert.NotNull(projectModel);
+        Assert.Equal(projectId, projectModel.Id);
+        Assert.Equal(projectName, projectModel.Name);
+    }
+    
+    [Fact]
+    public async Task GetProjectByLastUsed_Returns_Project_With_Most_Recent_UserStory_When_No_Tasks_Exist()
+    {
+        // Arrange - Ensure clean database
+        await CleanupProjects();
+        
+        // Create two projects
+        var project1Name = "GPLU Fallback Test Project 1";
+        var project2Name = "GPLU Fallback Test Project 2";
+        
+        var createProject1Request = new CreateProjectRequest(project1Name);
+        var createProject2Request = new CreateProjectRequest(project2Name);
+        
+        var createProject1Result = await _createProjectHandler.Handle(createProject1Request, CancellationToken.None);
+        Assert.True(createProject1Result.IsSuccess);
+        var project1Id = createProject1Result.Value;
+        
+        var createProject2Result = await _createProjectHandler.Handle(createProject2Request, CancellationToken.None);
+        Assert.True(createProject2Result.IsSuccess);
+        var project2Id = createProject2Result.Value;
+        
+        // Create a user story for the first project
+        var userStory1Name = "GPLU Fallback User Story 1";
+        var createUserStory1Request = new CreateUserStoryRequest(userStory1Name, project1Id);
+        var createUserStory1Result = await _createUserStoryHandler.Handle(createUserStory1Request, CancellationToken.None);
+        Assert.True(createUserStory1Result.IsSuccess);
+        
+        // Wait a moment to ensure different timestamps
+        await Task.Delay(10);
+        
+        // Create a user story for the second project (more recent)
+        var userStory2Name = "GPLU Fallback User Story 2";
+        var createUserStory2Request = new CreateUserStoryRequest(userStory2Name, project2Id);
+        var createUserStory2Result = await _createUserStoryHandler.Handle(createUserStory2Request, CancellationToken.None);
+        Assert.True(createUserStory2Result.IsSuccess);
+        
+        // Act - Get project by last used 
+        var getProjectByLastUsedRequest = new GetProjectByLastUsedRequest();
+        var getProjectByLastUsedResult = await _getProjectByLastUsedHandler.Handle(getProjectByLastUsedRequest, CancellationToken.None);
+        
+        // Assert - Should return the second project as it has the most recently created user story
+        Assert.True(getProjectByLastUsedResult.IsSuccess);
+        var projectModel = getProjectByLastUsedResult.Value;
+        Assert.NotNull(projectModel);
+        Assert.Equal(project2Id, projectModel.Id);
+        Assert.Equal(project2Name, projectModel.Name);
+    }
+    
+    [Fact]
+    public async Task GetProjectByLastUsed_Returns_Failure_When_No_Projects_Exist()
+    {
+        // Arrange - Ensure clean database
+        await CleanupProjects();
+        
+        // Act - Attempt to get project by last used with empty database
+        var getProjectByLastUsedRequest = new GetProjectByLastUsedRequest();
+        var getProjectByLastUsedResult = await _getProjectByLastUsedHandler.Handle(getProjectByLastUsedRequest, CancellationToken.None);
+        
+        // Assert - Should return failure since no projects exist
         Assert.False(getProjectByLastUsedResult.IsSuccess);
-        Assert.Contains("No tasks found", getProjectByLastUsedResult.Errors.First().Message);
+        Assert.Contains("No projects found", getProjectByLastUsedResult.Errors.First().Message);
     }
     
     [Fact]

@@ -1,0 +1,31 @@
+@namespace ClaudeCodeCurator.Components
+@using ClaudeCodeCurator.Models
+
+<div class="border border-gray-200 rounded-md p-3">
+    @if (Project != null)
+    {
+        <EditorListProject Project="@Project" />
+
+        @if (Project.UserStories.Any())
+        {
+            <EditorListUserStories Project="@Project" />
+        }
+        else
+        {
+            <div class="mt-3 text-gray-500 text-sm">
+                <p>No user stories available for this project.</p>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-gray-500 text-sm">
+            <p>No project loaded.</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public ProjectModel? Project { get; set; }
+}

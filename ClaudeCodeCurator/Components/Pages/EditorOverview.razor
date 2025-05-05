@@ -1,13 +1,79 @@
+@page "/editor"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using ClaudeCodeCurator.Commands.GetProjectByLastUsed
+@using ClaudeCodeCurator.Models
+@using MediatR
+@inject IMediator Mediator
+
 <div class="h-full border-r border-gray-200 p-4 flex flex-col">
     <div class="flex-grow-0">
         <h2 class="text-xl font-semibold mb-3">Editor Overview</h2>
     </div>
     
-    <div class="flex-grow h-3/5 overflow-hidden">
-        <EditorList />
-    </div>
-    
-    <div class="flex-grow h-2/5 overflow-hidden mt-3">
-        <EditorDetail />
-    </div>
+    @if (_loading)
+    {
+        <div class="flex justify-center items-center h-24">
+            <p class="text-gray-500">Loading project data...</p>
+        </div>
+    }
+    else if (_errorMessage != null)
+    {
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+            <p>@_errorMessage</p>
+        </div>
+    }
+    else if (_project != null)
+    {
+        <div class="flex-grow h-3/5 overflow-hidden">
+            <ClaudeCodeCurator.Components.EditorList Project="@_project" />
+        </div>
+        
+        <div class="flex-grow h-2/5 overflow-hidden mt-3">
+            <ClaudeCodeCurator.Components.EditorDetail />
+        </div>
+    }
+    else
+    {
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" role="alert">
+            <p>No projects found. Please create a new project to get started.</p>
+        </div>
+    }
 </div>
+
+@code {
+    private bool _loading = true;
+    private string? _errorMessage;
+    private ProjectModel? _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLatestProject();
+    }
+
+    private async Task LoadLatestProject()
+    {
+        try
+        {
+            _loading = true;
+            
+            var result = await Mediator.Send(new GetProjectByLastUsedRequest());
+            
+            if (result.IsSuccess)
+            {
+                _project = result.Value;
+            }
+            else
+            {
+                _errorMessage = result.Errors.FirstOrDefault()?.Message ?? "Unknown error occurred while loading the project.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Failed to load project: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

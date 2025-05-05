@@ -24,30 +24,61 @@ public class GetProjectByLastUsedHandler : IRequestHandler<GetProjectByLastUsedR
 
         try
         {
-            // Find the most recently updated task
+            // Try to find the most recently updated task
             var lastUpdatedTask = await context.Tasks
                 .AsNoTracking()
                 .OrderByDescending(t => t.CreatedOrUpdatedUtc)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            // If there are no tasks in the system, return a failure
+            // If there are no tasks in the system, try to find the most recently updated user story
+            Guid projectId;
             if (lastUpdatedTask == null)
             {
-                return Result.Fail("No tasks found in the system");
+                // Try to find the most recently updated user story
+                var lastUpdatedUserStory = await context.UserStories
+                    .AsNoTracking()
+                    .OrderByDescending(us => us.CreatedOrUpdatedUtc)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                // If there are no user stories, try to find the most recently updated project
+                if (lastUpdatedUserStory == null)
+                {
+                    // Try to find the most recently updated project
+                    var lastUpdatedProject = await context.Projects
+                        .AsNoTracking()
+                        .OrderByDescending(p => p.CreatedOrUpdatedUtc)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    // If there are no projects either, return a failure
+                    if (lastUpdatedProject == null)
+                    {
+                        return Result.Fail("No projects found in the system");
+                    }
+
+                    // Use the most recently updated project
+                    projectId = lastUpdatedProject.Id;
+                }
+                else
+                {
+                    // Use the most recently updated user story's project
+                    projectId = lastUpdatedUserStory.ProjectId;
+                }
             }
-
-            // Get the user story for this task
-            var userStory = await context.UserStories
-                .AsNoTracking()
-                .FirstOrDefaultAsync(us => us.Id == lastUpdatedTask.UserStoryId, cancellationToken);
-
-            if (userStory == null)
+            else
             {
-                return Result.Fail($"User story with ID '{lastUpdatedTask.UserStoryId}' not found");
-            }
+                // Get the user story for this task
+                var userStory = await context.UserStories
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(us => us.Id == lastUpdatedTask.UserStoryId, cancellationToken);
 
-            // Get the project ID
-            var projectId = userStory.ProjectId;
+                if (userStory == null)
+                {
+                    return Result.Fail($"User story with ID '{lastUpdatedTask.UserStoryId}' not found");
+                }
+
+                // Get the project ID from the user story
+                projectId = userStory.ProjectId;
+            }
 
             // Load the complete project with all user stories and tasks
             var projectEntity = await context.Projects
