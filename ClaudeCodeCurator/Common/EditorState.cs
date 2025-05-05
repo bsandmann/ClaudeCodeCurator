@@ -28,7 +28,7 @@ public class EditorState
     // Event handlers
     public event Action? StateChanged;
     
-    // Methods to change state
+    // User Story related methods
     public void ShowCreateUserStory(ProjectModel project)
     {
         SelectedProject = project;
@@ -54,6 +54,32 @@ public class EditorState
         NotifyStateChanged();
     }
     
+    // Task related methods
+    public void ShowCreateTask(UserStoryModel userStory)
+    {
+        SelectedUserStory = userStory;
+        SelectedTask = null;
+        CurrentMode = DetailViewMode.CreateTask;
+        NotifyStateChanged();
+    }
+    
+    public void ShowEditTask(TaskModel task, UserStoryModel userStory)
+    {
+        SelectedUserStory = userStory;
+        SelectedTask = task;
+        CurrentMode = DetailViewMode.EditTask;
+        NotifyStateChanged();
+    }
+    
+    public void ShowViewTask(TaskModel task, UserStoryModel userStory)
+    {
+        SelectedUserStory = userStory;
+        SelectedTask = task;
+        CurrentMode = DetailViewMode.ViewTask;
+        NotifyStateChanged();
+    }
+    
+    // Reset state
     public void ClearDetailView()
     {
         SelectedUserStory = null;

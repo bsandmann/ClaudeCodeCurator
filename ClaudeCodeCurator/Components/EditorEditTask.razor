@@ -1,0 +1,163 @@
+@namespace ClaudeCodeCurator.Components
+@using ClaudeCodeCurator.Commands.UpdateTask
+@using ClaudeCodeCurator.Models
+@using ClaudeCodeCurator.Entities
+@using ClaudeCodeCurator.Common
+@using MediatR
+@using System.ComponentModel.DataAnnotations
+@inject IMediator Mediator
+@inject EditorState EditorState
+
+<div class="border border-gray-200 rounded-md p-4">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Edit Task</h3>
+        <button @onclick="Cancel" class="text-gray-400 hover:text-gray-600" title="Cancel">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    @if (EditorState.SelectedTask != null && EditorState.SelectedUserStory != null)
+    {
+        <div class="text-sm text-gray-500 mb-3">
+            Task #@EditorState.SelectedTask.TaskNumber for User Story #@EditorState.SelectedUserStory.UserStoryNumber
+        </div>
+
+        <EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-red-500 text-sm mb-4" />
+
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <InputText id="name" @bind-Value="_model.Name" class="w-full p-2 border rounded-md" placeholder="Enter task name" />
+                <ValidationMessage For="@(() => _model.Name)" class="text-red-500 text-sm" />
+            </div>
+
+            <div class="mb-4">
+                <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Task Type</label>
+                <InputSelect id="type" @bind-Value="_model.Type" class="w-full p-2 border rounded-md">
+                    <option value="@TaskType.Task">Task</option>
+                    <option value="@TaskType.Bug">Bug</option>
+                    <option value="@TaskType.Verify">Verify</option>
+                </InputSelect>
+            </div>
+
+            <div class="mb-4">
+                <label for="promptBody" class="block text-sm font-medium text-gray-700 mb-1">Description/Prompt</label>
+                <InputTextArea id="promptBody" @bind-Value="_model.PromptBody" class="w-full p-2 border rounded-md h-36" 
+                               placeholder="Enter task description or prompt" />
+                <ValidationMessage For="@(() => _model.PromptBody)" class="text-red-500 text-sm" />
+            </div>
+
+            <div class="flex justify-end space-x-2">
+                <button type="button" @onclick="Cancel" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" disabled="@_isSubmitting">
+                    @if (_isSubmitting)
+                    {
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>Save</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
+    }
+    else
+    {
+        <div class="text-red-500">No task selected for editing.</div>
+    }
+
+    @if (_errorMessage != null)
+    {
+        <div class="mt-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700" role="alert">
+            <p>@_errorMessage</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<bool> OnTaskUpdated { get; set; }
+
+    private class TaskFormModel
+    {
+        [Required(ErrorMessage = "Name is required.")]
+        [StringLength(500, ErrorMessage = "Name cannot exceed 500 characters.")]
+        public string Name { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Description/Prompt is required.")]
+        public string PromptBody { get; set; } = string.Empty;
+        
+        public TaskType Type { get; set; } = TaskType.Task;
+    }
+
+    private TaskFormModel _model = new();
+    private bool _isSubmitting = false;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        if (EditorState.SelectedTask != null)
+        {
+            // Initialize form with the selected task data
+            _model.Name = EditorState.SelectedTask.Name;
+            _model.PromptBody = EditorState.SelectedTask.PromptBody;
+            _model.Type = EditorState.SelectedTask.Type;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (EditorState.SelectedTask == null)
+        {
+            _errorMessage = "No task selected for update.";
+            return;
+        }
+
+        try
+        {
+            _isSubmitting = true;
+            _errorMessage = null;
+
+            var request = new UpdateTaskRequest(
+                EditorState.SelectedTask.Id,
+                _model.Name,
+                _model.PromptBody,
+                _model.Type
+            );
+
+            var result = await Mediator.Send(request);
+
+            if (result.IsSuccess)
+            {
+                // Notify parent component that a task was updated
+                await OnTaskUpdated.InvokeAsync(true);
+                
+                // Clear editor state to close this form
+                EditorState.ClearDetailView();
+            }
+            else
+            {
+                _errorMessage = result.Errors.FirstOrDefault()?.Message ?? "Failed to update task.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        EditorState.ClearDetailView();
+    }
+}
