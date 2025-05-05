@@ -59,6 +59,8 @@ public class GetProjectByIdHandler : IRequestHandler<GetProjectByIdRequest, Resu
             {
                 Id = projectEntity.Id,
                 Name = projectEntity.Name,
+                UserStoryNumberCounter = projectEntity.UserStoryNumberCounter,
+                TaskNumberCounter = projectEntity.TaskNumberCounter,
                 UserStories = new List<UserStoryModel>()
             };
             
@@ -72,6 +74,7 @@ public class GetProjectByIdHandler : IRequestHandler<GetProjectByIdRequest, Resu
                         Id = userStoryEntity.Id,
                         Name = userStoryEntity.Name,
                         Description = userStoryEntity.Description,
+                        UserStoryNumber = userStoryEntity.UserStoryNumber,
                         ProjectId = projectEntity.Id,
                         Tasks = new List<TaskModel>()
                     };
@@ -86,6 +89,7 @@ public class GetProjectByIdHandler : IRequestHandler<GetProjectByIdRequest, Resu
                                 Id = taskEntity.Id,
                                 Name = taskEntity.Name,
                                 PromptBody = taskEntity.PromptBody,
+                                TaskNumber = taskEntity.TaskNumber,
                                 Type = taskEntity.Type,
                                 UserStoryId = userStoryEntity.Id
                             });

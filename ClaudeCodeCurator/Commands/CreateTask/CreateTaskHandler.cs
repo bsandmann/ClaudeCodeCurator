@@ -24,15 +24,18 @@ public class CreateTaskHandler : IRequestHandler<CreateTaskRequest, Result<Guid>
 
         try
         {
-            // Verify that the user story exists
-            var userStoryExists = await context.UserStories
-                .AsNoTracking()
-                .AnyAsync(us => us.Id == request.UserStoryId, cancellationToken);
+            // Get the user story and its project to access the counter
+            var userStory = await context.UserStories
+                .Include(us => us.Project)
+                .FirstOrDefaultAsync(us => us.Id == request.UserStoryId, cancellationToken);
 
-            if (!userStoryExists)
+            if (userStory == null)
             {
                 return Result.Fail($"User story with ID '{request.UserStoryId}' does not exist");
             }
+
+            // Get the project to access and update the counter
+            var project = userStory.Project;
 
             // Check if a task with the same name already exists in the user story
             var existingTask = await context.Tasks
@@ -46,13 +49,17 @@ public class CreateTaskHandler : IRequestHandler<CreateTaskRequest, Result<Guid>
                 return Result.Fail($"Task with name '{request.Name}' already exists in this user story");
             }
 
-            // Create new task
+            // Increment the counter
+            project.TaskNumberCounter++;
+
+            // Create new task with number
             var task = new TaskEntity
             {
                 Name = request.Name,
                 PromptBody = request.PromptBody,
                 UserStoryId = request.UserStoryId,
-                Type = request.Type
+                Type = request.Type,
+                TaskNumber = project.TaskNumberCounter
             };
 
             await context.Tasks.AddAsync(task, cancellationToken);

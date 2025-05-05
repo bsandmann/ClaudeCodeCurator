@@ -14,6 +14,9 @@ public class TaskEntity
     [Required]
     public string PromptBody { get; set; } = string.Empty;
     
+    // Auto-incremented number within project
+    public int TaskNumber { get; set; }
+    
     // Task type with default value
     public TaskType Type { get; set; } = TaskType.Task;
     

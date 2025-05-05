@@ -24,12 +24,11 @@ public class CreateUserStoryHandler : IRequestHandler<CreateUserStoryRequest, Re
 
         try
         {
-            // Verify that the project exists
-            var projectExists = await context.Projects
-                .AsNoTracking()
-                .AnyAsync(p => p.Id == request.ProjectId, cancellationToken);
+            // Get the project - we need it to access and update the counter
+            var project = await context.Projects
+                .FirstOrDefaultAsync(p => p.Id == request.ProjectId, cancellationToken);
 
-            if (!projectExists)
+            if (project == null)
             {
                 return Result.Fail($"Project with ID '{request.ProjectId}' does not exist");
             }
@@ -46,12 +45,16 @@ public class CreateUserStoryHandler : IRequestHandler<CreateUserStoryRequest, Re
                 return Result.Fail($"User story with name '{request.Name}' already exists in this project");
             }
 
-            // Create new user story
+            // Increment the counter
+            project.UserStoryNumberCounter++;
+            
+            // Create new user story with number
             var userStory = new UserStoryEntity
             {
                 Name = request.Name,
                 Description = request.Description,
-                ProjectId = request.ProjectId
+                ProjectId = request.ProjectId,
+                UserStoryNumber = project.UserStoryNumberCounter
             };
 
             await context.UserStories.AddAsync(userStory, cancellationToken);

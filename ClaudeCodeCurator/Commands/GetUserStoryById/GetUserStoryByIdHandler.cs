@@ -49,6 +49,7 @@ public class GetUserStoryByIdHandler : IRequestHandler<GetUserStoryByIdRequest, 
                 Id = userStoryEntity.Id,
                 Name = userStoryEntity.Name,
                 Description = userStoryEntity.Description,
+                UserStoryNumber = userStoryEntity.UserStoryNumber,
                 ProjectId = userStoryEntity.ProjectId,
                 Tasks = new List<TaskModel>()
             };
@@ -63,6 +64,7 @@ public class GetUserStoryByIdHandler : IRequestHandler<GetUserStoryByIdRequest, 
                         Id = taskEntity.Id,
                         Name = taskEntity.Name,
                         PromptBody = taskEntity.PromptBody,
+                        TaskNumber = taskEntity.TaskNumber,
                         Type = taskEntity.Type,
                         UserStoryId = userStoryEntity.Id
                     });

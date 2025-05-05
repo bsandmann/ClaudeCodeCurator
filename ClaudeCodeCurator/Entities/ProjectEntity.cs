@@ -11,6 +11,10 @@ public class ProjectEntity
     [MaxLength(200)]
     public string Name { get; set; } = string.Empty;
     
+    public int UserStoryNumberCounter { get; set; }
+    
+    public int TaskNumberCounter { get; set; }
+    
     // Navigation property - collection of user stories
     public virtual ICollection<UserStoryEntity> UserStories { get; set; } = new List<UserStoryEntity>();
 }
