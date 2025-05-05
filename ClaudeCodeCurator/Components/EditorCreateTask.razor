@@ -1,5 +1,6 @@
 @namespace ClaudeCodeCurator.Components
 @using ClaudeCodeCurator.Commands.CreateTask
+@using ClaudeCodeCurator.Commands.SetUserTaskApproval
 @using ClaudeCodeCurator.Models
 @using ClaudeCodeCurator.Entities
 @using ClaudeCodeCurator.Common
@@ -47,7 +48,7 @@
                 <button type="button" @onclick="Cancel" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm">
                     Cancel
                 </button>
-                <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm" disabled="@_isSubmitting">
+                <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm" disabled="@(_isSubmitting || _isSubmittingAndApproving)">
                     @if (_isSubmitting)
                     {
                         <span>Creating...</span>
@@ -55,6 +56,16 @@
                     else
                     {
                         <span>Create</span>
+                    }
+                </button>
+                <button type="button" @onclick="HandleCreateAndApprove" class="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm" disabled="@(_isSubmitting || _isSubmittingAndApproving)">
+                    @if (_isSubmittingAndApproving)
+                    {
+                        <span>Processing...</span>
+                    }
+                    else
+                    {
+                        <span>Create and Approve</span>
                     }
                 </button>
             </div>
@@ -91,6 +102,7 @@
 
     private TaskFormModel _model = new();
     private bool _isSubmitting = false;
+    private bool _isSubmittingAndApproving = false;
     private string? _errorMessage;
 
     private async Task HandleValidSubmit()
@@ -143,4 +155,78 @@
     {
         EditorState.ClearDetailView();
     }
+    
+    private async Task HandleCreateAndApprove()
+    {
+        if (EditorState.SelectedUserStory == null)
+        {
+            _errorMessage = "No user story selected for creating a task.";
+            return;
+        }
+        
+        // Simple validation without the custom validator
+        if (string.IsNullOrWhiteSpace(_model.Name))
+        {
+            _errorMessage = "Name is required.";
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(_model.PromptBody))
+        {
+            _errorMessage = "Description/Prompt is required.";
+            return;
+        }
+
+        try
+        {
+            _isSubmittingAndApproving = true;
+            _errorMessage = null;
+
+            // Step 1: Create the task
+            var createRequest = new CreateTaskRequest(
+                _model.Name,
+                _model.PromptBody,
+                EditorState.SelectedUserStory.Id,
+                _model.Type
+            );
+
+            var createResult = await Mediator.Send(createRequest);
+
+            if (createResult.IsSuccess)
+            {
+                // Step 2: Approve the newly created task
+                var taskId = createResult.Value; // This is already a Guid
+                var approveRequest = new SetUserTaskApprovalRequest(taskId, true);
+                var approveResult = await Mediator.Send(approveRequest);
+
+                if (approveResult.IsSuccess)
+                {
+                    // Notify parent component that a task was created and approved
+                    await OnTaskCreated.InvokeAsync(true);
+                    
+                    // Clear the form
+                    EditorState.ClearDetailView();
+                }
+                else
+                {
+                    _errorMessage = approveResult.Errors.FirstOrDefault()?.Message ?? 
+                        "Task was created but could not be approved. Please approve it manually.";
+                }
+            }
+            else
+            {
+                _errorMessage = createResult.Errors.FirstOrDefault()?.Message ?? "Failed to create task.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmittingAndApproving = false;
+        }
+    }
+    
+    // No custom validator needed
 }

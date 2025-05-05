@@ -1,6 +1,7 @@
 @namespace ClaudeCodeCurator.Components
 @using ClaudeCodeCurator.Commands.UpdateTask
 @using ClaudeCodeCurator.Commands.RemoveTask
+@using ClaudeCodeCurator.Commands.SetUserTaskApproval
 @using ClaudeCodeCurator.Models
 @using ClaudeCodeCurator.Entities
 @using ClaudeCodeCurator.Common
@@ -85,6 +86,32 @@
                             <span>Save</span>
                         }
                     </button>
+                    @if (IsTaskApproved)
+                    {
+                        <button type="button" @onclick="ToggleApprovalStatus" class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-md text-sm" disabled="@(_isTogglingApproval || _isSubmitting)">
+                            @if (_isTogglingApproval)
+                            {
+                                <span>Processing...</span>
+                            }
+                            else
+                            {
+                                <span>Decline</span>
+                            }
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" @onclick="SaveAndApprove" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm" disabled="@(_isTogglingApproval || _isSubmitting)">
+                            @if (_isTogglingApproval)
+                            {
+                                <span>Processing...</span>
+                            }
+                            else
+                            {
+                                <span>Save and Approve</span>
+                            }
+                        </button>
+                    }
                 </div>
             </div>
         </EditForm>
@@ -121,8 +148,11 @@
     private TaskFormModel _model = new();
     private bool _isSubmitting = false;
     private bool _isDeleting = false;
+    private bool _isTogglingApproval = false;
     private bool _showDeleteConfirmation = false;
     private string? _errorMessage;
+    
+    private bool IsTaskApproved => EditorState.SelectedTask?.ApprovedByUserUtc != null;
 
     protected override void OnInitialized()
     {
@@ -233,6 +263,115 @@
         finally
         {
             _isDeleting = false;
+        }
+    }
+    
+    private async Task ToggleApprovalStatus()
+    {
+        if (EditorState.SelectedTask == null)
+        {
+            _errorMessage = "No task selected for approval/decline.";
+            return;
+        }
+
+        try
+        {
+            _isTogglingApproval = true;
+            _errorMessage = null;
+
+            // The new approval state is the opposite of the current state
+            bool newApprovalState = !IsTaskApproved;
+            
+            var request = new SetUserTaskApprovalRequest(
+                EditorState.SelectedTask.Id,
+                newApprovalState
+            );
+            
+            var result = await Mediator.Send(request);
+
+            if (result.IsSuccess)
+            {
+                // Notify parent component that a task was updated
+                await OnTaskUpdated.InvokeAsync(true);
+                
+                // Clear editor state to close this form - same behavior as Save button
+                EditorState.ClearDetailView();
+            }
+            else
+            {
+                _errorMessage = result.Errors.FirstOrDefault()?.Message ?? 
+                    $"Failed to {(newApprovalState ? "approve" : "decline")} task.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            _isTogglingApproval = false;
+        }
+    }
+    
+    private async Task SaveAndApprove()
+    {
+        if (EditorState.SelectedTask == null)
+        {
+            _errorMessage = "No task selected for update and approval.";
+            return;
+        }
+        
+        try
+        {
+            _isTogglingApproval = true;
+            _errorMessage = null;
+            
+            // Step 1: Save the task first
+            var updateRequest = new UpdateTaskRequest(
+                EditorState.SelectedTask.Id,
+                _model.Name,
+                _model.PromptBody,
+                _model.Type
+            );
+            
+            var updateResult = await Mediator.Send(updateRequest);
+            
+            if (updateResult.IsSuccess)
+            {
+                // Step 2: Approve the task
+                var approveRequest = new SetUserTaskApprovalRequest(
+                    EditorState.SelectedTask.Id,
+                    true // Always approve, since the button is only shown in unapproved state
+                );
+                
+                var approveResult = await Mediator.Send(approveRequest);
+                
+                if (approveResult.IsSuccess)
+                {
+                    // Notify parent component that a task was updated and approved
+                    await OnTaskUpdated.InvokeAsync(true);
+                    
+                    // Clear editor state to close this form
+                    EditorState.ClearDetailView();
+                }
+                else
+                {
+                    _errorMessage = approveResult.Errors.FirstOrDefault()?.Message ?? 
+                        "Task was saved but could not be approved. Please try approving it again.";
+                }
+            }
+            else
+            {
+                _errorMessage = updateResult.Errors.FirstOrDefault()?.Message ?? "Failed to save task.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            _isTogglingApproval = false;
         }
     }
 }
