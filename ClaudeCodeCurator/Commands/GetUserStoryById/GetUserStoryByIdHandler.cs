@@ -71,7 +71,8 @@ public class GetUserStoryByIdHandler : IRequestHandler<GetUserStoryByIdRequest, 
                         ApprovedByUserUtc = taskEntity.ApprovedByUserUtc,
                         RequestedByAiUtc = taskEntity.RequestedByAiUtc,
                         FinishedByAiUtc = taskEntity.FinishedByAiUtc,
-                        CreatedOrUpdatedUtc = taskEntity.CreatedOrUpdatedUtc
+                        CreatedOrUpdatedUtc = taskEntity.CreatedOrUpdatedUtc,
+                        Paused = taskEntity.Paused
                     });
                 }
             }

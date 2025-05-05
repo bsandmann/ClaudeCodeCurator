@@ -29,6 +29,9 @@ namespace ClaudeCodeCurator.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<DateTime>("CreatedOrUpdatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -45,6 +48,27 @@ namespace ClaudeCodeCurator.Migrations
                     b.ToTable("Projects", (string)null);
                 });
 
+            modelBuilder.Entity("ClaudeCodeCurator.Entities.ProjectTaskOrderEntity", b =>
+                {
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TaskId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ProjectId", "TaskId");
+
+                    b.HasIndex("TaskId");
+
+                    b.HasIndex("ProjectId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("ProjectTaskOrders", (string)null);
+                });
+
             modelBuilder.Entity("ClaudeCodeCurator.Entities.TaskEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -52,14 +76,29 @@ namespace ClaudeCodeCurator.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<DateTime?>("ApprovedByUserUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedOrUpdatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("FinishedByAiUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<bool>("Paused")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("PromptBody")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("RequestedByAiUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("TaskNumber")
                         .HasColumnType("integer");
@@ -86,6 +125,9 @@ namespace ClaudeCodeCurator.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<DateTime>("CreatedOrUpdatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
@@ -105,6 +147,25 @@ namespace ClaudeCodeCurator.Migrations
                     b.HasIndex("ProjectId");
 
                     b.ToTable("UserStories", (string)null);
+                });
+
+            modelBuilder.Entity("ClaudeCodeCurator.Entities.ProjectTaskOrderEntity", b =>
+                {
+                    b.HasOne("ClaudeCodeCurator.Entities.ProjectEntity", "Project")
+                        .WithMany("OrderedTasks")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ClaudeCodeCurator.Entities.TaskEntity", "Task")
+                        .WithMany("ProjectOrders")
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Task");
                 });
 
             modelBuilder.Entity("ClaudeCodeCurator.Entities.TaskEntity", b =>
@@ -131,7 +192,14 @@ namespace ClaudeCodeCurator.Migrations
 
             modelBuilder.Entity("ClaudeCodeCurator.Entities.ProjectEntity", b =>
                 {
+                    b.Navigation("OrderedTasks");
+
                     b.Navigation("UserStories");
+                });
+
+            modelBuilder.Entity("ClaudeCodeCurator.Entities.TaskEntity", b =>
+                {
+                    b.Navigation("ProjectOrders");
                 });
 
             modelBuilder.Entity("ClaudeCodeCurator.Entities.UserStoryEntity", b =>

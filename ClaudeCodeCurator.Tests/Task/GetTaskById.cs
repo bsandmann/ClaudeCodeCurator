@@ -265,8 +265,8 @@ public partial class IntegrationTests
         var taskModelType = typeof(TaskModel);
         var properties = taskModelType.GetProperties();
         
-        // Should only contain the 10 expected properties (6 original + 4 new date properties)
-        Assert.Equal(10, properties.Length);
+        // Should only contain the 11 expected properties (6 original + 4 date properties + Paused)
+        Assert.Equal(11, properties.Length);
         
         // Check that there are no navigation properties to other entities
         var propertyNames = properties.Select(p => p.Name).ToList();
@@ -277,6 +277,7 @@ public partial class IntegrationTests
         Assert.Contains("Type", propertyNames);
         Assert.Contains("UserStoryId", propertyNames);
         Assert.Contains("ApprovedByUserUtc", propertyNames);
+        Assert.Contains("Paused", propertyNames);
         Assert.Contains("RequestedByAiUtc", propertyNames);
         Assert.Contains("FinishedByAiUtc", propertyNames);
         Assert.Contains("CreatedOrUpdatedUtc", propertyNames);

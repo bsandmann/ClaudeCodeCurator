@@ -10,6 +10,7 @@ using ClaudeCodeCurator.Commands.RemoveTask;
 using ClaudeCodeCurator.Commands.RemoveUserStory;
 using ClaudeCodeCurator.Commands.SetAiTaskFinishState;
 using ClaudeCodeCurator.Commands.SetAiTaskRequestState;
+using ClaudeCodeCurator.Commands.SetTaskPause;
 using ClaudeCodeCurator.Commands.SetUserTaskApproval;
 using ClaudeCodeCurator.Commands.UpdateProject;
 using ClaudeCodeCurator.Commands.UpdateTask;
@@ -51,6 +52,8 @@ public partial class IntegrationTests : IDisposable
     private readonly SetAiTaskRequestStateHandler _setAiTaskRequestStateHandler;
     private readonly SetAiTaskFinishStateHandler _setAiTaskFinishStateHandler;
     private readonly MoveTaskInProjectOrderHandler _moveTaskInProjectOrderHandler;
+    private readonly IServiceProvider _serviceProvider;
+    
     public IntegrationTests(TransactionalTestDatabaseFixture fixture)
     {
         this.Fixture = fixture;
@@ -65,6 +68,14 @@ public partial class IntegrationTests : IDisposable
         this._mockedCache = LazyCache.Testing.Moq.Create.MockedCachingService();
 
 
+        // Setup a service collection and service provider for DI testing
+        var services = new ServiceCollection();
+        services.AddSingleton(_context);
+        services.AddTransient<SetTaskPauseHandler>(provider => 
+            new SetTaskPauseHandler(_serviceScopeFactoryMock.Object));
+            
+        _serviceProvider = services.BuildServiceProvider();
+            
         // Create a mock service provider that returns the test context
         _serviceProviderMock = Mock.Of<IServiceProvider>(sp => 
             sp.GetService(typeof(DataContext)) == _context);

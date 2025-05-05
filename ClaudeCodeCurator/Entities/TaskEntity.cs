@@ -25,6 +25,9 @@ public class TaskEntity
     public DateTime? RequestedByAiUtc { get; set; }
     public DateTime? FinishedByAiUtc { get; set; }
     
+    // Task can be paused to temporarily exclude it from processing
+    public bool Paused { get; set; } = false;
+    
     // Creation/update timestamp
     public DateTime CreatedOrUpdatedUtc { get; set; }
     

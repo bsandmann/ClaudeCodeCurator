@@ -46,7 +46,8 @@ public class GetTaskByIdHandler : IRequestHandler<GetTaskByIdRequest, Result<Tas
                 ApprovedByUserUtc = taskEntity.ApprovedByUserUtc,
                 RequestedByAiUtc = taskEntity.RequestedByAiUtc,
                 FinishedByAiUtc = taskEntity.FinishedByAiUtc,
-                CreatedOrUpdatedUtc = taskEntity.CreatedOrUpdatedUtc
+                CreatedOrUpdatedUtc = taskEntity.CreatedOrUpdatedUtc,
+                Paused = taskEntity.Paused
             };
 
             return Result.Ok(taskModel);
