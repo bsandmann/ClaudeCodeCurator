@@ -8,6 +8,7 @@
 @using System.ComponentModel.DataAnnotations
 @inject IMediator Mediator
 @inject EditorState EditorState
+@implements IDisposable
 
 <div class="p-2">
     <h3 class="text-lg font-semibold mb-2">Edit Task</h3>
@@ -154,6 +155,27 @@
     private bool IsTaskApproved => EditorState.SelectedTask?.ApprovedByUserUtc != null;
 
     protected override void OnInitialized()
+    {
+        // Subscribe to state changes
+        EditorState.StateChanged += OnStateChanged;
+        
+        // Initial form data population
+        UpdateFormFromSelectedTask();
+    }
+    
+    public void Dispose()
+    {
+        EditorState.StateChanged -= OnStateChanged;
+    }
+    
+    private async Task OnStateChanged()
+    {
+        // When state changes, update form data from the currently selected task
+        UpdateFormFromSelectedTask();
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private void UpdateFormFromSelectedTask()
     {
         if (EditorState.SelectedTask != null)
         {

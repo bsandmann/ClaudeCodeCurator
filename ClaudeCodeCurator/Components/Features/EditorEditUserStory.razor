@@ -6,6 +6,7 @@
 @using System.ComponentModel.DataAnnotations
 @inject IMediator Mediator
 @inject EditorState EditorState
+@implements IDisposable
 
 <div class="p-2">
     <h3 class="text-lg font-semibold mb-2">Edit User Story</h3>
@@ -109,6 +110,27 @@
     private string? _errorMessage;
 
     protected override void OnInitialized()
+    {
+        // Subscribe to state changes
+        EditorState.StateChanged += OnStateChanged;
+        
+        // Initial form data population
+        UpdateFormFromSelectedUserStory();
+    }
+    
+    public void Dispose()
+    {
+        EditorState.StateChanged -= OnStateChanged;
+    }
+    
+    private async Task OnStateChanged()
+    {
+        // When state changes, update form data from the currently selected user story
+        UpdateFormFromSelectedUserStory();
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private void UpdateFormFromSelectedUserStory()
     {
         if (EditorState.SelectedUserStory != null)
         {
