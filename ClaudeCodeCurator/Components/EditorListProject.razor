@@ -3,10 +3,10 @@
 @using ClaudeCodeCurator.Common
 @inject EditorState EditorState
 
-<div class="@(IsSelected ? "bg-gray-200" : "bg-gray-100") rounded-md p-2 hover:bg-gray-200 cursor-pointer transition-colors" @onclick="EditProject">
+<div class="@(IsSelected ? "bg-gray-200" : "bg-gray-100") p-2 hover:bg-gray-200 cursor-pointer transition-colors" @onclick="EditProject">
     <div class="flex items-center">
         <div class="flex-grow">
-            <h3 class="text-lg font-semibold text-blue-700">@Project.Name</h3>
+            <h3 class="text-lg font-semibold text-gray-800">@Project.Name</h3>
         </div>
         <div>
             <button @onclick:stopPropagation="true" @onclick="CreateUserStory" class="text-gray-500 hover:text-blue-600" title="Add user story">

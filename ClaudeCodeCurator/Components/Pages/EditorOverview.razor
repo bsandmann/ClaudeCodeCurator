@@ -8,7 +8,7 @@
 @inject EditorState EditorState
 @implements IDisposable
 
-<div class="h-full border-r border-gray-200 p-2 flex flex-col">
+<div class="h-full border-r border-gray-200 p-0 flex flex-col">
     @if (_loading)
     {
         <div class="flex justify-center items-center h-24">
@@ -29,7 +29,7 @@
         
         @if (_isDetailVisible)
         {
-            <div class="flex-grow overflow-hidden mt-2" style="height: 40%; min-height: 600px; max-height: 600px;">
+            <div class="flex-grow overflow-hidden mt-2 border-t bg-white border-gray-500" style="height: 40%; min-height: 600px; max-height: 600px;">
                 <ClaudeCodeCurator.Components.EditorDetail 
                     OnViewRefreshNeeded="HandleRefreshNeeded" 
                     OnDetailClosed="HandleDetailClosed" />

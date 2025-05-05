@@ -4,7 +4,7 @@
 @inject EditorState EditorState
 
 <div class="py-1 rounded">
-    <div class="flex items-center @(IsSelected ? "bg-gray-200" : "bg-gray-100") hover:bg-gray-200 p-2 rounded-md cursor-pointer transition-colors" @onclick="EditUserStory">
+    <div class="flex items-center @(IsSelected ? "bg-gray-200" : "bg-gray-100") hover:bg-gray-200 p-2 rounded-tl-md rounded-bl-md cursor-pointer transition-colors ml-2" @onclick="EditUserStory">
         <div class="flex-grow">
             <div class="flex items-center">
                 <span class="text-xs bg-gray-200 rounded px-1 mr-2">US-@UserStory.UserStoryNumber</span>

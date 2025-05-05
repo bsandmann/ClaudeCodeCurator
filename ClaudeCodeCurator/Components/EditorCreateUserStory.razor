@@ -7,34 +7,29 @@
 @inject IMediator Mediator
 @inject EditorState EditorState
 
-<div class="border border-gray-200 rounded-md p-4">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">Create New User Story</h3>
-        <button @onclick="Cancel" class="text-gray-400 hover:text-gray-600" title="Cancel">
-            <span class="material-symbols-outlined">close</span>
-        </button>
-    </div>
+<div class="p-2">
+    <h3 class="text-lg font-semibold mb-2">Create New User Story</h3>
 
     <EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
         <DataAnnotationsValidator />
-        <ValidationSummary class="text-red-500 text-sm mb-4" />
+        <ValidationSummary class="text-red-500 text-sm mb-3" />
 
-        <div class="mb-4">
+        <div class="mb-3">
             <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
             <InputText id="name" @bind-Value="_model.Name" class="w-full p-2 border rounded-md" placeholder="Enter user story name" />
             <ValidationMessage For="@(() => _model.Name)" class="text-red-500 text-sm" />
         </div>
 
-        <div class="mb-4">
+        <div class="mb-3">
             <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <InputTextArea id="description" @bind-Value="_model.Description" class="w-full p-2 border rounded-md h-24" placeholder="Enter user story description (optional)" />
         </div>
 
         <div class="flex justify-end space-x-2">
-            <button type="button" @onclick="Cancel" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+            <button type="button" @onclick="Cancel" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm">
                 Cancel
             </button>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" disabled="@_isSubmitting">
+            <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm" disabled="@_isSubmitting">
                 @if (_isSubmitting)
                 {
                     <span>Creating...</span>
@@ -49,7 +44,7 @@
 
     @if (_errorMessage != null)
     {
-        <div class="mt-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700" role="alert">
+        <div class="mt-3 p-2 bg-red-100 border-l-4 border-red-500 text-red-700" role="alert">
             <p>@_errorMessage</p>
         </div>
     }
