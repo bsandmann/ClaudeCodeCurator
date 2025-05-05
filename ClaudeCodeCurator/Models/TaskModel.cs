@@ -13,6 +13,11 @@ public class TaskModel
     
     public TaskType Type { get; set; } = TaskType.Task;
     
+    // Date properties for tracking task lifecycle
+    public DateTime? ApprovedByUserUtc { get; set; }
+    public DateTime? RequestedByAiUtc { get; set; }
+    public DateTime? FinishedByAiUtc { get; set; }
+    
     // Reference to parent user story by ID only
     public Guid UserStoryId { get; set; }
 }

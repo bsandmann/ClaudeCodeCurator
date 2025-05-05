@@ -42,7 +42,10 @@ public class GetTaskByIdHandler : IRequestHandler<GetTaskByIdRequest, Result<Tas
                 PromptBody = taskEntity.PromptBody,
                 TaskNumber = taskEntity.TaskNumber,
                 Type = taskEntity.Type,
-                UserStoryId = taskEntity.UserStoryId
+                UserStoryId = taskEntity.UserStoryId,
+                ApprovedByUserUtc = taskEntity.ApprovedByUserUtc,
+                RequestedByAiUtc = taskEntity.RequestedByAiUtc,
+                FinishedByAiUtc = taskEntity.FinishedByAiUtc
             };
 
             return Result.Ok(taskModel);

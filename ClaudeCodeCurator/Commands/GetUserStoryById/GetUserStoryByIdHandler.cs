@@ -66,7 +66,10 @@ public class GetUserStoryByIdHandler : IRequestHandler<GetUserStoryByIdRequest, 
                         PromptBody = taskEntity.PromptBody,
                         TaskNumber = taskEntity.TaskNumber,
                         Type = taskEntity.Type,
-                        UserStoryId = userStoryEntity.Id
+                        UserStoryId = userStoryEntity.Id,
+                        ApprovedByUserUtc = taskEntity.ApprovedByUserUtc,
+                        RequestedByAiUtc = taskEntity.RequestedByAiUtc,
+                        FinishedByAiUtc = taskEntity.FinishedByAiUtc
                     });
                 }
             }
