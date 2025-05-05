@@ -4,7 +4,7 @@
 @using ClaudeCodeCurator.Common
 @inject EditorState EditorState
 
-<div class="border-l-2 border-gray-100 pl-2 py-1 hover:bg-gray-50 rounded-sm" @onclick="ViewTask">
+<div class="border-l-2 border-gray-100 pl-2 py-1 hover:bg-gray-200 rounded-sm cursor-pointer transition-colors" @onclick="EditTask">
     <div class="flex items-center">
         <div class="flex-grow">
             <div class="flex items-center">
@@ -33,12 +33,6 @@
                     <span class="px-1 py-0.5 rounded bg-yellow-100 text-yellow-800 text-xs">⏸</span>
                 }
             </div>
-        </div>
-        <div>
-            <button class="text-gray-400 hover:text-blue-600" title="Edit task" 
-                    @onclick:stopPropagation="true" @onclick="EditTask">
-                <span class="material-symbols-outlined" style="font-size: 14px;">edit</span>
-            </button>
         </div>
     </div>
 </div>

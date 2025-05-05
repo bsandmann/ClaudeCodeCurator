@@ -4,19 +4,16 @@
 @inject EditorState EditorState
 
 <div class="border-l-2 border-gray-300 pl-3 py-2 rounded">
-    <div class="flex items-center hover:bg-gray-50 -ml-3 pl-3 py-1 rounded" @onclick="ViewUserStory">
+    <div class="flex items-center hover:bg-gray-200 -ml-3 pl-3 py-1 rounded cursor-pointer transition-colors" @onclick="EditUserStory">
         <div class="flex-grow">
             <div class="flex items-center">
                 <span class="text-xs bg-gray-200 rounded px-1 mr-2">US-@UserStory.UserStoryNumber</span>
                 <h5 class="text-sm font-medium">@UserStory.Name</h5>
             </div>
         </div>
-        <div class="flex space-x-2">
+        <div>
             <button class="text-gray-400 hover:text-blue-600" title="Add task" @onclick:stopPropagation="true" @onclick="CreateTask">
                 <span class="material-symbols-outlined text-xs">add</span>
-            </button>
-            <button class="text-gray-400 hover:text-blue-600" title="Edit user story" @onclick:stopPropagation="true" @onclick="EditUserStory">
-                <span class="material-symbols-outlined text-xs">edit</span>
             </button>
         </div>
     </div>
