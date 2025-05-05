@@ -7,6 +7,7 @@ using ClaudeCodeCurator.Commands.GetUserStoryById;
 using ClaudeCodeCurator.Commands.RemoveProject;
 using ClaudeCodeCurator.Commands.RemoveTask;
 using ClaudeCodeCurator.Commands.RemoveUserStory;
+using ClaudeCodeCurator.Commands.SetUserTaskApproval;
 using ClaudeCodeCurator.Commands.UpdateProject;
 using ClaudeCodeCurator.Commands.UpdateTask;
 using ClaudeCodeCurator.Commands.UpdateUserStory;
@@ -43,6 +44,7 @@ public partial class IntegrationTests : IDisposable
     private readonly RemoveTaskHandler _removeTaskHandler;
     private readonly RemoveUserStoryHandler _removeUserStoryHandler;
     private readonly RemoveProjectHandler _removeProjectHandler;
+    private readonly SetUserTaskApprovalHandler _setUserTaskApprovalHandler;
     public IntegrationTests(TransactionalTestDatabaseFixture fixture)
     {
         this.Fixture = fixture;
@@ -84,6 +86,7 @@ public partial class IntegrationTests : IDisposable
         this._removeTaskHandler = new RemoveTaskHandler(_serviceScopeFactoryMock.Object);
         this._removeUserStoryHandler = new RemoveUserStoryHandler(_serviceScopeFactoryMock.Object);
         this._removeProjectHandler = new RemoveProjectHandler(_serviceScopeFactoryMock.Object);
+        this._setUserTaskApprovalHandler = new SetUserTaskApprovalHandler(_serviceScopeFactoryMock.Object);
 
         // Initialize handlers with the mocked service scope factory
     }
