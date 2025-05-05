@@ -51,7 +51,7 @@
     protected override async Task OnInitializedAsync()
     {
         // Subscribe to state change events
-        EditorState.StateChanged += StateHasChanged;
+        EditorState.StateChanged += OnStateChanged;
         
         await LoadLatestProject();
     }
@@ -59,7 +59,13 @@
     public void Dispose()
     {
         // Unsubscribe from state change events
-        EditorState.StateChanged -= StateHasChanged;
+        EditorState.StateChanged -= OnStateChanged;
+    }
+    
+    // Define the async callback for state changes
+    private async Task OnStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadLatestProject()

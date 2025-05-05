@@ -4,23 +4,11 @@
 @inject EditorState EditorState
 
 <div class="border-l-2 border-gray-300 pl-3 py-2 rounded">
-    <div class="flex items-center hover:bg-gray-50 -ml-3 pl-3 py-1 rounded cursor-pointer" @onclick="ToggleExpanded">
+    <div class="flex items-center hover:bg-gray-50 -ml-3 pl-3 py-1 rounded" @onclick="ViewUserStory">
         <div class="flex-grow">
             <div class="flex items-center">
-                <span class="text-xs mr-1 text-gray-500">
-                    <span class="material-symbols-outlined text-sm @(_isExpanded ? "rotate-90" : "")">chevron_right</span>
-                </span>
                 <span class="text-xs bg-gray-200 rounded px-1 mr-2">US-@UserStory.UserStoryNumber</span>
                 <h5 class="text-sm font-medium">@UserStory.Name</h5>
-            </div>
-            
-            @if (!string.IsNullOrEmpty(UserStory.Description))
-            {
-                <p class="text-xs text-gray-500 mt-1 line-clamp-2">@UserStory.Description</p>
-            }
-            
-            <div class="text-xs text-gray-400 mt-1">
-                @UserStory.Tasks.Count task@(UserStory.Tasks.Count != 1 ? "s" : "")
             </div>
         </div>
         <div class="flex space-x-2">
@@ -33,7 +21,7 @@
         </div>
     </div>
     
-    @if (_isExpanded && UserStory.Tasks.Any())
+    @if (UserStory.Tasks.Any())
     {
         <div class="ml-2 mt-1 space-y-1">
             @foreach (var task in UserStory.Tasks.OrderBy(t => t.TaskNumber))
@@ -47,19 +35,6 @@
 @code {
     [Parameter]
     public UserStoryModel UserStory { get; set; } = null!;
-    
-    private bool _isExpanded = false;
-    
-    private void ToggleExpanded()
-    {
-        _isExpanded = !_isExpanded;
-        
-        if (!_isExpanded)
-        {
-            // When collapsed, show the user story details
-            ViewUserStory();
-        }
-    }
     
     private void ViewUserStory()
     {

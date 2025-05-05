@@ -1,7 +1,9 @@
 namespace ClaudeCodeCurator.Common;
 
 using ClaudeCodeCurator.Models;
+using Microsoft.AspNetCore.Components;
 using System;
+using System.Threading.Tasks;
 
 public class EditorState
 {
@@ -14,7 +16,8 @@ public class EditorState
         ViewUserStory,
         CreateTask,
         EditTask,
-        ViewTask
+        ViewTask,
+        EditProject
     }
 
     // Current view mode
@@ -26,7 +29,7 @@ public class EditorState
     public TaskModel? SelectedTask { get; private set; }
     
     // Event handlers
-    public event Action? StateChanged;
+    public event Func<Task>? StateChanged;
     
     // User Story related methods
     public void ShowCreateUserStory(ProjectModel project)
@@ -51,6 +54,16 @@ public class EditorState
         SelectedUserStory = userStory;
         SelectedTask = null;
         CurrentMode = DetailViewMode.ViewUserStory;
+        NotifyStateChanged();
+    }
+    
+    // Project related methods
+    public void ShowEditProject(ProjectModel project)
+    {
+        SelectedProject = project;
+        SelectedUserStory = null;
+        SelectedTask = null;
+        CurrentMode = DetailViewMode.EditProject;
         NotifyStateChanged();
     }
     
@@ -88,5 +101,30 @@ public class EditorState
         NotifyStateChanged();
     }
     
-    private void NotifyStateChanged() => StateChanged?.Invoke();
+    private void NotifyStateChanged()
+    {
+        if (StateChanged != null)
+        {
+            // Start the task but don't wait for it
+            _ = InvokeStateChangedAsync();
+        }
+    }
+    
+    private async Task InvokeStateChangedAsync()
+    {
+        if (StateChanged != null)
+        {
+            foreach (var handler in StateChanged.GetInvocationList())
+            {
+                try
+                {
+                    await ((Func<Task>)handler).Invoke();
+                }
+                catch (Exception)
+                {
+                    // Swallow exceptions to prevent one handler from breaking others
+                }
+            }
+        }
+    }
 }

@@ -6,6 +6,7 @@ using ClaudeCodeCurator.Commands.GetProjectList;
 using ClaudeCodeCurator.Common;
 using ClaudeCodeCurator.Components;
 using MediatR;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 

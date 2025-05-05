@@ -78,6 +78,10 @@
             }
             break;
             
+        case EditorState.DetailViewMode.EditProject:
+            <EditorEditProject OnProjectUpdated="HandleProjectUpdated" />
+            break;
+            
         default:
             <div class="p-3">
                 <h3 class="text-lg font-semibold mb-3">Detail View</h3>
@@ -93,12 +97,18 @@
     
     protected override void OnInitialized()
     {
-        EditorState.StateChanged += StateHasChanged;
+        EditorState.StateChanged += OnStateChanged;
     }
     
     public void Dispose()
     {
-        EditorState.StateChanged -= StateHasChanged;
+        EditorState.StateChanged -= OnStateChanged;
+    }
+    
+    // Define the async callback for state changes
+    private async Task OnStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
     }
     
     private async Task HandleUserStoryCreated(bool success)
@@ -126,6 +136,14 @@
     }
     
     private async Task HandleTaskUpdated(bool success)
+    {
+        if (success)
+        {
+            await OnViewRefreshNeeded.InvokeAsync(true);
+        }
+    }
+    
+    private async Task HandleProjectUpdated(bool success)
     {
         if (success)
         {
