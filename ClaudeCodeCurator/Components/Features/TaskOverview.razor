@@ -7,6 +7,7 @@
 @using MediatR
 @inject IMediator Mediator
 @inject EditorState EditorState
+@implements IDisposable
 
 <div class="h-full border-l border-gray-200 p-4 flex flex-col">
     <h2 class="text-xl font-semibold mb-4">Task Overview</h2>
@@ -89,7 +90,23 @@
     
     protected override async Task OnInitializedAsync()
     {
+        // Subscribe to state changes to detect when a task is approved/declined
+        EditorState.StateChanged += OnStateChanged;
+        
         await LoadApprovedTasks();
+    }
+    
+    public void Dispose()
+    {
+        // Unsubscribe from state changes when component is disposed
+        EditorState.StateChanged -= OnStateChanged;
+    }
+    
+    private async Task OnStateChanged()
+    {
+        // When a state change occurs (e.g., task approval/decline), reload the task list
+        await LoadApprovedTasks();
+        await InvokeAsync(StateHasChanged);
     }
     
     private async Task LoadApprovedTasks()
