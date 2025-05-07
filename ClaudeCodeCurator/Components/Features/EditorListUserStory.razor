@@ -9,16 +9,23 @@
             <div class="flex items-center">
                 <span class="text-xs bg-gray-200 rounded px-1 mr-2">US-@UserStory.UserStoryNumber</span>
                 <h5 class="text-sm font-medium">@UserStory.Name</h5>
+                <span class="text-xs text-gray-500 ml-2">(@(UserStory.Tasks.Count > 0 ? $"{UserStory.Tasks.Count} {(UserStory.Tasks.Count == 1 ? "task" : "tasks")}" : "no tasks yet"))</span>
             </div>
         </div>
-        <div>
-            <button class="text-gray-500 hover:text-blue-600" title="Add task" @onclick:stopPropagation="true" @onclick="CreateTask">
+        <div class="flex items-center space-x-1">
+            @if (UserStory.Tasks.Any())
+            {
+                <button class="text-gray-500 hover:text-blue-600 hover:bg-gray-100 bg-white rounded-full h-6 flex items-center justify-center" title="@(IsTaskListExpanded ? "Collapse tasks" : "Expand tasks")" @onclick:stopPropagation="true" @onclick="ToggleTaskList">
+                    <span class="material-symbols-outlined">@(IsTaskListExpanded ? "expand_less" : "expand_more")</span>
+                </button>
+            }
+            <button class="text-gray-500 hover:text-blue-600 hover:bg-gray-100 bg-white rounded-full h-6 flex items-center justify-center" title="Add task" @onclick:stopPropagation="true" @onclick="CreateTask">
                 <span class="material-symbols-outlined">add</span>
             </button>
         </div>
     </div>
     
-    @if (UserStory.Tasks.Any())
+    @if (UserStory.Tasks.Any() && IsTaskListExpanded)
     {
         <div class="ml-4 mt-2 space-y-1">
             @foreach (var task in UserStory.Tasks.OrderBy(t => t.TaskNumber))
@@ -39,6 +46,9 @@
          EditorState.CurrentMode == EditorState.DetailViewMode.CreateTask) &&
         EditorState.SelectedUserStory?.Id == UserStory.Id;
     
+    // Default state is collapsed
+    private bool IsTaskListExpanded { get; set; } = false;
+    
     private void ViewUserStory()
     {
         EditorState.ShowViewUserStory(UserStory);
@@ -52,5 +62,10 @@
     private void CreateTask()
     {
         EditorState.ShowCreateTask(UserStory);
+    }
+    
+    private void ToggleTaskList()
+    {
+        IsTaskListExpanded = !IsTaskListExpanded;
     }
 }

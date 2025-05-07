@@ -686,6 +686,10 @@ h1, h2, h3, h4, h5, h6 {
   height: 100vh;
 }
 
+.h-6 {
+  height: 1.5rem;
+}
+
 .w-1\/2 {
   width: 50%;
 }
