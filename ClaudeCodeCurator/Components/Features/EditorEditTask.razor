@@ -68,6 +68,13 @@
                 </div>
             </div>
 
+            <div class="mb-2">
+                <div class="flex items-center">
+                    <InputCheckbox id="referenceUserStory" @bind-Value="_model.ReferenceUserStory" class="mr-2 h-4 w-4" />
+                    <label for="referenceUserStory" class="text-sm font-medium text-stone-700">Reference UserStory description in prompt</label>
+                </div>
+            </div>
+
             <div class="mb-3">
                 <label for="promptBody" class="block text-sm font-medium text-stone-700 mb-1">Prompt</label>
                 <InputTextArea id="promptBody" @bind-Value="_model.PromptBody" class="w-full p-2 border rounded-md h-36 bg-stone-500 text-white font-mono text-sm" 
@@ -166,6 +173,8 @@
         public string PromptBody { get; set; } = string.Empty;
         
         public TaskType Type { get; set; } = TaskType.Task;
+        
+        public bool ReferenceUserStory { get; set; } = false;
     }
 
     private TaskFormModel _model = new();
@@ -227,6 +236,7 @@
             _model.Name = EditorState.SelectedTask.Name;
             _model.PromptBody = EditorState.SelectedTask.PromptBody;
             _model.Type = EditorState.SelectedTask.Type;
+            _model.ReferenceUserStory = !string.IsNullOrEmpty(EditorState.SelectedTask.ReferenceUserStory);
         }
     }
 
@@ -247,7 +257,8 @@
                 EditorState.SelectedTask.Id,
                 _model.Name,
                 _model.PromptBody,
-                _model.Type
+                _model.Type,
+                _model.ReferenceUserStory ? "true" : ""
             );
 
             var result = await Mediator.Send(request);
@@ -396,7 +407,8 @@
                 EditorState.SelectedTask.Id,
                 _model.Name,
                 _model.PromptBody,
-                _model.Type
+                _model.Type,
+                _model.ReferenceUserStory ? "true" : ""
             );
             
             var updateResult = await Mediator.Send(updateRequest);

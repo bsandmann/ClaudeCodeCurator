@@ -694,6 +694,10 @@ h1, h2, h3, h4, h5, h6 {
   height: 100vh;
 }
 
+.h-4 {
+  height: 1rem;
+}
+
 .max-h-48 {
   max-height: 12rem;
 }
@@ -716,6 +720,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .w-full {
   width: 100%;
+}
+
+.w-4 {
+  width: 1rem;
 }
 
 .flex-1 {
