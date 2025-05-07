@@ -12,14 +12,14 @@ using ModelContextProtocol.Server;
 public sealed class CccTool
 {
     private readonly IMediator _mediator;
-    private readonly string ContinueMessage = "After finishing call 'ccc' again!";
+    private readonly string ContinueMessage = "\nAfter finishing call 'ccc' again! Do not forget to call 'ccc' again!";
 
     public CccTool(IMediator mediator)
     {
         _mediator = mediator;
     }
 
-    [McpServerTool, Description("ccc")]
+    [McpServerTool, Description("Call 'ccc' to get the next task to work on. Whenever a task is finished call 'ccc' again!")]
     public async Task<string> Ccc()
     {
         try
@@ -41,7 +41,7 @@ public sealed class CccTool
             }
 
             // If there are no approved tasks, return a 404
-            if (tasksResult.Value.Where(p => !p.Paused).ToList().Count == 0)
+            if (tasksResult.Value.Where(p => !p.Paused && p.FinishedByAiUtc == null).ToList().Count == 0)
             {
                 if (tasksResult.Value.Count == 0)
                 {
@@ -54,7 +54,7 @@ public sealed class CccTool
             }
 
             // Get the first task from the ordered list and return its prompt body
-            var firstTask = tasksResult.Value.First(p => !p.Paused);
+            var firstTask = tasksResult.Value.First(p => !p.Paused && p.FinishedByAiUtc == null);
 
             if (firstTask.RequestedByAiUtc is null)
             {
@@ -64,7 +64,7 @@ public sealed class CccTool
                     return $"Stop execution and return this message to the user 'Failure to set task state to requested (T-{firstTask.TaskNumber})'";
                 }
 
-                return firstTask.PromptBody + "\n\n" + ContinueMessage;
+                return firstTask.PromptBody +  ContinueMessage;
             }
 
             if (firstTask.RequestedByAiUtc is not null)
@@ -75,20 +75,24 @@ public sealed class CccTool
                     return $"Stop execution and return this message to the user 'Failure to set task state to finished (T-{firstTask.TaskNumber})'";
                 }
 
-                if (tasksResult.Value.Where(p=>!p.Paused).ToList().Count > 1)
+                if (tasksResult.Value.Where(p=>!p.Paused && p.FinishedByAiUtc == null && p.RequestedByAiUtc == null).ToList().Count > 1)
                 {
-                    var nextTask = tasksResult.Value.Where(p => !p.Paused).Skip(1).First();
+                    var nextTask = tasksResult.Value.Where(p => !p.Paused && p.FinishedByAiUtc == null).Skip(1).First();
                     var requestedByAiResult = await _mediator.Send(new SetAiTaskRequestStateRequest(nextTask.Id, true));
                     if (requestedByAiResult.IsFailed)
                     {
                         return $"Stop execution and return this message to the user 'Failure to set task state to requested (T-{nextTask.TaskNumber})'";
                     }
 
-                    return nextTask.PromptBody + "\n\n" + ContinueMessage;
+                    return nextTask.PromptBody +  ContinueMessage;
                 }
                 else
                 {
-                    var nextTask = tasksResult.Value.Where(p=>!p.Paused).Skip(1).First();
+                    var nextTask = tasksResult.Value.Where(p=>!p.Paused && p.FinishedByAiUtc == null).Skip(1).FirstOrDefault();
+                    if (nextTask is null)
+                    {
+                        return $"Stop execution and return this message to the user 'All done'";
+                    }
                     var requestedByAiResult = await _mediator.Send(new SetAiTaskRequestStateRequest(nextTask.Id, true));
                     if (requestedByAiResult.IsFailed)
                     {
