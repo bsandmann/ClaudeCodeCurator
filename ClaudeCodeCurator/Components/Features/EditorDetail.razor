@@ -5,9 +5,9 @@
 @inject EditorState EditorState
 
 <div class="h-full overflow-auto">
-    <div class="flex justify-between items-center border-b border-gray-500 p-1 bg-gray-200">
+    <div class="flex justify-between items-center border-b border-stone-400 p-1 bg-stone-200">
         <h3 class="text-xs font-medium ml-1">Details</h3>
-        <button @onclick="CloseDetail" class="text-gray-500 hover:text-gray-700">
+        <button @onclick="CloseDetail" class="text-stone-400 hover:text-stone-700">
             <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
         </button>
     </div>
@@ -28,7 +28,7 @@
                 <div class="p-2">
                     <div class="mb-2">
                         <h3 class="text-lg font-semibold mb-1">@EditorState.SelectedUserStory.Name</h3>
-                        <div class="text-xs text-gray-500 mb-2">User Story #@EditorState.SelectedUserStory.UserStoryNumber</div>
+                        <div class="text-xs text-stone-500 mb-2">User Story #@EditorState.SelectedUserStory.UserStoryNumber</div>
                         
                         @if (!string.IsNullOrEmpty(EditorState.SelectedUserStory.Description))
                         {
@@ -37,7 +37,7 @@
                         
                         <div class="flex justify-end">
                             <button @onclick="() => EditorState.ShowEditUserStory(EditorState.SelectedUserStory)" 
-                                    class="text-sm text-blue-600 hover:text-blue-800">
+                                    class="text-sm text-stone-600 hover:text-blue-800">
                                 Edit User Story
                             </button>
                         </div>
@@ -63,20 +63,20 @@
             {
                 <div class="p-2">
                     <h3 class="text-lg font-semibold mb-1">@EditorState.SelectedTask.Name</h3>
-                    <div class="flex items-center text-xs text-gray-500 mb-2">
+                    <div class="flex items-center text-xs text-stone-500 mb-2">
                         <span class="mr-2">Task #@EditorState.SelectedTask.TaskNumber</span>
                         <span class="px-2 py-0.5 rounded-full @GetTaskTypeClass(EditorState.SelectedTask.Type)">
                             @EditorState.SelectedTask.Type
                         </span>
                     </div>
                     
-                    <div class="border border-gray-200 rounded-md p-2 bg-gray-50 mb-2">
+                    <div class="border border-stone-200 rounded-md p-2 bg-stone-50 mb-2">
                         <pre class="text-sm whitespace-pre-wrap">@EditorState.SelectedTask.PromptBody</pre>
                     </div>
                     
                     <div class="flex justify-end">
                         <button @onclick="() => EditorState.ShowEditTask(EditorState.SelectedTask, EditorState.SelectedUserStory)" 
-                                class="text-sm text-blue-600 hover:text-blue-800">
+                                class="text-sm text-stone-600 hover:text-blue-800">
                             Edit
                         </button>
                     </div>
@@ -91,7 +91,7 @@
         default:
             <div class="p-2">
                 <h3 class="text-base font-semibold mb-2">Detail View</h3>
-                <p class="text-sm text-gray-500">Select a user story or task to view details.</p>
+                <p class="text-sm text-stone-500">Select a user story or task to view details.</p>
             </div>
             break;
     }
@@ -171,7 +171,7 @@
         return type switch
         {
             TaskType.Bug => "bg-red-100 text-red-800",
-            TaskType.Verify => "bg-green-100 text-green-800",
+            TaskType.Verify => "bg-white text-lime-600",
             _ => "bg-blue-100 text-blue-800"
         };
     }

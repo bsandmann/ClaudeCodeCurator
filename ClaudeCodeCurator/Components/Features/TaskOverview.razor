@@ -10,13 +10,13 @@
 @inject EditorState EditorState
 @implements IDisposable
 
-<div class="h-full border-l border-gray-200 p-4 flex flex-col">
+<div class="h-full border-l border-stone-200 p-4 flex flex-col">
     <h2 class="text-xl font-semibold mb-4">Task Overview</h2>
     
     @if (_loading)
     {
         <div class="flex justify-center items-center h-24">
-            <p class="text-gray-500">Loading tasks...</p>
+            <p class="text-stone-500">Loading tasks...</p>
         </div>
     }
     else if (_errorMessage != null)
@@ -38,7 +38,7 @@
     }
     else
     {
-        <div class="text-gray-500 flex justify-center items-center h-24">
+        <div class="text-stone-500 flex justify-center items-center h-24">
             No approved tasks found.
         </div>
     }

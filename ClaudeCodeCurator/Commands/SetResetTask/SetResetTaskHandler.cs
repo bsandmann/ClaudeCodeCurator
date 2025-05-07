@@ -77,6 +77,7 @@ public class SetResetTaskHandler : IRequestHandler<SetResetTaskRequest, Result<b
                     if (hasChanges)
                     {
                         task.CreatedOrUpdatedUtc = DateTime.UtcNow;
+                        task.Paused = false;
                         
                         // If task was approved before, remove it from ProjectTaskOrders
                         if (wasApproved)

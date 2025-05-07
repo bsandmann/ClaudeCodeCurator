@@ -14,21 +14,21 @@
         <ValidationSummary class="text-red-500 text-sm mb-3" />
 
         <div class="mb-3">
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label for="name" class="block text-sm font-medium text-stone-700 mb-1">Name</label>
             <InputText id="name" @bind-Value="_model.Name" class="w-full p-2 border rounded-md" placeholder="Enter user story name" />
             <ValidationMessage For="@(() => _model.Name)" class="text-red-500 text-sm" />
         </div>
 
         <div class="mb-3">
-            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label for="description" class="block text-sm font-medium text-stone-700 mb-1">Description</label>
             <InputTextArea id="description" @bind-Value="_model.Description" class="w-full p-2 border rounded-md h-24" placeholder="Enter user story description (optional)" />
         </div>
 
         <div class="flex justify-end space-x-2">
-            <button type="button" @onclick="Cancel" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm">
+            <button type="button" @onclick="Cancel" class="px-3 py-1 border border-stone-300 rounded-md text-stone-700 hover:bg-stone-50 text-sm">
                 Cancel
             </button>
-            <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm" disabled="@_isSubmitting">
+            <button type="submit" class="px-3 py-1 bg-stone-600 text-white rounded-md hover:bg-stone-700 text-sm" disabled="@_isSubmitting">
                 @if (_isSubmitting)
                 {
                     <span>Creating...</span>

@@ -48,6 +48,7 @@ public class SetAiTaskRequestStateHandler : IRequestHandler<SetAiTaskRequestStat
             if (statusChanged)
             {
                 task.RequestedByAiUtc = newValue;
+                task.Paused = false;
                 task.CreatedOrUpdatedUtc = DateTime.UtcNow;
                 hasChanges = true;
             }

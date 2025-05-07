@@ -48,6 +48,7 @@ public class SetAiTaskFinishStateHandler : IRequestHandler<SetAiTaskFinishStateR
             if (statusChanged)
             {
                 task.FinishedByAiUtc = newValue;
+                task.Paused = false;
                 task.CreatedOrUpdatedUtc = DateTime.UtcNow;
                 hasChanges = true;
             }
