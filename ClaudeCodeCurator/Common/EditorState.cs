@@ -3,6 +3,7 @@ namespace ClaudeCodeCurator.Common;
 using ClaudeCodeCurator.Models;
 using Microsoft.AspNetCore.Components;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 public class EditorState
@@ -27,6 +28,43 @@ public class EditorState
     public ProjectModel? SelectedProject { get; private set; }
     public UserStoryModel? SelectedUserStory { get; private set; }
     public TaskModel? SelectedTask { get; private set; }
+    
+    // Track expanded user stories by their ID
+    private readonly HashSet<Guid> _expandedUserStories = new HashSet<Guid>();
+    
+    // Public methods to check, expand, collapse user stories
+    public bool IsUserStoryExpanded(Guid userStoryId) => _expandedUserStories.Contains(userStoryId);
+    
+    public void ExpandUserStory(Guid userStoryId)
+    {
+        if (!_expandedUserStories.Contains(userStoryId))
+        {
+            _expandedUserStories.Add(userStoryId);
+            // No need to notify state changed as this doesn't affect the UI directly
+        }
+    }
+    
+    public void CollapseUserStory(Guid userStoryId)
+    {
+        if (_expandedUserStories.Contains(userStoryId))
+        {
+            _expandedUserStories.Remove(userStoryId);
+            // No need to notify state changed as this doesn't affect the UI directly
+        }
+    }
+    
+    public void ToggleUserStoryExpansion(Guid userStoryId)
+    {
+        if (_expandedUserStories.Contains(userStoryId))
+        {
+            _expandedUserStories.Remove(userStoryId);
+        }
+        else
+        {
+            _expandedUserStories.Add(userStoryId);
+        }
+        // No need to notify state changed as this doesn't affect the UI directly
+    }
     
     // Event handlers
     public event Func<Task>? StateChanged;

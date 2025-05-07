@@ -46,8 +46,21 @@
          EditorState.CurrentMode == EditorState.DetailViewMode.CreateTask) &&
         EditorState.SelectedUserStory?.Id == UserStory.Id;
     
-    // Default state is collapsed
-    private bool IsTaskListExpanded { get; set; } = false;
+    // Use EditorState to determine expansion state
+    private bool IsTaskListExpanded => EditorState.IsUserStoryExpanded(UserStory.Id);
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Auto-expand the selected user story if it has the selected task
+        if (EditorState.SelectedUserStory?.Id == UserStory.Id && 
+            EditorState.SelectedTask != null && 
+            UserStory.Tasks.Any(t => t.Id == EditorState.SelectedTask.Id))
+        {
+            EditorState.ExpandUserStory(UserStory.Id);
+        }
+    }
     
     private void ViewUserStory()
     {
@@ -75,14 +88,14 @@
     
     private void ToggleTaskList()
     {
-        IsTaskListExpanded = !IsTaskListExpanded;
+        EditorState.ToggleUserStoryExpansion(UserStory.Id);
     }
     
     private void ExpandTaskList()
     {
         if (!IsTaskListExpanded && UserStory.Tasks.Any())
         {
-            IsTaskListExpanded = true;
+            EditorState.ExpandUserStory(UserStory.Id);
         }
     }
     
