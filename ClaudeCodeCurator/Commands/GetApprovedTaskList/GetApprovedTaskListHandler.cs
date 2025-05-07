@@ -54,6 +54,7 @@ public class GetApprovedTaskListHandler : IRequestHandler<GetApprovedTaskListReq
                     PromptBody = pto.Task.PromptBody,
                     TaskNumber = pto.Task.TaskNumber,
                     Type = pto.Task.Type,
+                    ReferenceUserStory = pto.Task.ReferenceUserStory,
                     UserStoryId = pto.Task.UserStoryId,
                     UserStoryNumber = pto.Task.UserStory.UserStoryNumber,
                     ApprovedByUserUtc = pto.Task.ApprovedByUserUtc,

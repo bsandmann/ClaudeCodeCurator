@@ -20,6 +20,9 @@ public class TaskEntity
     // Task type with default value
     public TaskType Type { get; set; } = TaskType.Task;
     
+    // Reference to another user story (optional)
+    public string ReferenceUserStory { get; set; } = string.Empty;
+    
     // Date properties for tracking task lifecycle
     public DateTime? ApprovedByUserUtc { get; set; }
     public DateTime? RequestedByAiUtc { get; set; }

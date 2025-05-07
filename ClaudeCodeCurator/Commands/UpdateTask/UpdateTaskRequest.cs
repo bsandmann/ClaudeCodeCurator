@@ -18,16 +18,20 @@ public class UpdateTaskRequest : IRequest<Result<bool>>
     public string PromptBody { get; }
     
     public TaskType Type { get; }
+    
+    public string ReferenceUserStory { get; }
 
     public UpdateTaskRequest(
         Guid taskId, 
         string name, 
         string promptBody, 
-        TaskType type)
+        TaskType type,
+        string referenceUserStory = "")
     {
         TaskId = taskId;
         Name = name;
         PromptBody = promptBody;
         Type = type;
+        ReferenceUserStory = referenceUserStory;
     }
 }

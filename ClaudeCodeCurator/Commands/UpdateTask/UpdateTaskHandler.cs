@@ -69,6 +69,12 @@ public class UpdateTaskHandler : IRequestHandler<UpdateTaskRequest, Result<bool>
                 hasChanges = true;
             }
             
+            if (task.ReferenceUserStory != request.ReferenceUserStory)
+            {
+                task.ReferenceUserStory = request.ReferenceUserStory;
+                hasChanges = true;
+            }
+            
             // Only save if there are actual changes
             if (hasChanges)
             {

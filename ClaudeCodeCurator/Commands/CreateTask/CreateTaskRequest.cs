@@ -18,16 +18,20 @@ public class CreateTaskRequest : IRequest<Result<Guid>>
     public Guid UserStoryId { get; }
     
     public TaskType Type { get; }
+    
+    public string ReferenceUserStory { get; }
 
     public CreateTaskRequest(
         string name, 
         string promptBody, 
         Guid userStoryId, 
-        TaskType type = TaskType.Task)
+        TaskType type = TaskType.Task,
+        string referenceUserStory = "")
     {
         Name = name;
         PromptBody = promptBody;
         UserStoryId = userStoryId;
         Type = type;
+        ReferenceUserStory = referenceUserStory;
     }
 }

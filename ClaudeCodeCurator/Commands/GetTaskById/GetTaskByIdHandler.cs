@@ -43,6 +43,7 @@ public class GetTaskByIdHandler : IRequestHandler<GetTaskByIdRequest, Result<Tas
                 PromptBody = taskEntity.PromptBody,
                 TaskNumber = taskEntity.TaskNumber,
                 Type = taskEntity.Type,
+                ReferenceUserStory = taskEntity.ReferenceUserStory,
                 UserStoryId = taskEntity.UserStoryId,
                 UserStoryNumber = taskEntity.UserStory.UserStoryNumber,
                 ApprovedByUserUtc = taskEntity.ApprovedByUserUtc,

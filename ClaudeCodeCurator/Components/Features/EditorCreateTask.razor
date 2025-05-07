@@ -9,37 +9,39 @@
 @inject EditorState EditorState
 
 <div class="p-2">
-    <h3 class="text-lg font-semibold mb-2">Create New Task</h3>
-
     @if (EditorState.SelectedUserStory != null)
     {
-        <div class="text-sm text-stone-500 mb-2">
-            Creating task for User Story #@EditorState.SelectedUserStory.UserStoryNumber: @EditorState.SelectedUserStory.Name
+        <div class="flex justify-between items-center mb-3">
+            <div class="text-base font-medium text-stone-700">
+                Creating new task for User Story #@EditorState.SelectedUserStory.UserStoryNumber
+            </div>
         </div>
 
         <EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-red-500 text-sm mb-3" />
 
-            <div class="mb-3">
-                <label for="name" class="block text-sm font-medium text-stone-700 mb-1">Name</label>
-                <InputText id="name" @bind-Value="_model.Name" class="w-full p-2 border rounded-md" placeholder="Enter task name" />
-                <ValidationMessage For="@(() => _model.Name)" class="text-red-500 text-sm" />
+            <div class="flex mb-3 gap-4">
+                <div class="w-[70%]">
+                    <label for="name" class="block text-sm font-medium text-stone-700 mb-1">Name</label>
+                    <InputText id="name" @bind-Value="_model.Name" class="w-full p-2 border rounded-md" placeholder="Enter task name" />
+                    <ValidationMessage For="@(() => _model.Name)" class="text-red-500 text-sm" />
+                </div>
+
+                <div class="w-[30%]">
+                    <label for="type" class="block text-sm font-medium text-stone-700 mb-1">Task Type</label>
+                    <InputSelect id="type" @bind-Value="_model.Type" class="w-full p-2 border rounded-md">
+                        <option value="@TaskType.Task">Task</option>
+                        <option value="@TaskType.Bug">Bug</option>
+                        <option value="@TaskType.Verify">Verify</option>
+                    </InputSelect>
+                </div>
             </div>
 
             <div class="mb-3">
-                <label for="type" class="block text-sm font-medium text-stone-700 mb-1">Task Type</label>
-                <InputSelect id="type" @bind-Value="_model.Type" class="w-full p-2 border rounded-md">
-                    <option value="@TaskType.Task">Task</option>
-                    <option value="@TaskType.Bug">Bug</option>
-                    <option value="@TaskType.Verify">Verify</option>
-                </InputSelect>
-            </div>
-
-            <div class="mb-3">
-                <label for="promptBody" class="block text-sm font-medium text-stone-700 mb-1">Description/Prompt</label>
-                <InputTextArea id="promptBody" @bind-Value="_model.PromptBody" class="w-full p-2 border rounded-md h-36" 
-                               placeholder="Enter task description or prompt" />
+                <label for="promptBody" class="block text-sm font-medium text-stone-700 mb-1">Prompt</label>
+                <InputTextArea id="promptBody" @bind-Value="_model.PromptBody" class="w-full p-2 border rounded-md h-36 bg-stone-500 text-white font-mono text-sm" 
+                               placeholder="Enter task prompt" />
                 <ValidationMessage For="@(() => _model.PromptBody)" class="text-red-500 text-sm" />
             </div>
 
@@ -57,7 +59,7 @@
                         <span>Create</span>
                     }
                 </button>
-                <button type="button" @onclick="HandleCreateAndApprove" class="px-3 py-1 bg-lime-600 text-white rounded-md hover:bg-lime-700 text-sm" disabled="@(_isSubmitting || _isSubmittingAndApproving)">
+                <button type="button" @onclick="HandleCreateAndApprove" class="px-3 py-1 bg-lime-600 hover:bg-lime-700 text-white rounded-md text-sm" disabled="@(_isSubmitting || _isSubmittingAndApproving)">
                     @if (_isSubmittingAndApproving)
                     {
                         <span>Processing...</span>
@@ -93,7 +95,7 @@
         [StringLength(500, ErrorMessage = "Name cannot exceed 500 characters.")]
         public string Name { get; set; } = string.Empty;
         
-        [Required(ErrorMessage = "Description/Prompt is required.")]
+        [Required(ErrorMessage = "Prompt is required.")]
         public string PromptBody { get; set; } = string.Empty;
         
         public TaskType Type { get; set; } = TaskType.Task;
@@ -172,7 +174,7 @@
         
         if (string.IsNullOrWhiteSpace(_model.PromptBody))
         {
-            _errorMessage = "Description/Prompt is required.";
+            _errorMessage = "Prompt is required.";
             return;
         }
 
