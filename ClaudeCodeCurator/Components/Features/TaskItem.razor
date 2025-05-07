@@ -96,6 +96,26 @@
     private bool _isTogglingPause = false;
     private bool _isExpanded = false;
     
+    protected override void OnInitialized()
+    {
+        // Initialize expansion state from EditorState
+        _isExpanded = EditorState.IsTaskExpanded(Task.Id);
+        
+        // Only set up the timer if the task is in a processing state
+        if (Task.RequestedByAiUtc.HasValue && !Task.FinishedByAiUtc.HasValue)
+        {
+            // Set up a timer to change the clock icon every second
+            _clockTimer = new System.Threading.Timer(_ =>
+            {
+                // Update the clock phase (0-3 for the 4 icons)
+                _clockPhase = (_clockPhase + 1) % 4;
+                
+                // Request UI update
+                InvokeAsync(StateHasChanged);
+            }, null, 0, 1000); // Update every second
+        }
+    }
+    
     private bool ShowPauseButton => 
         // Only show the pause button when the task is approved but not in progress by AI or finished by AI
         Task.ApprovedByUserUtc.HasValue && 
@@ -177,22 +197,6 @@
     private int _clockPhase = 0;
     private System.Threading.Timer _clockTimer;
     
-    protected override void OnInitialized()
-    {
-        // Only set up the timer if the task is in a processing state
-        if (Task.RequestedByAiUtc.HasValue && !Task.FinishedByAiUtc.HasValue)
-        {
-            // Set up a timer to change the clock icon every second
-            _clockTimer = new System.Threading.Timer(_ =>
-            {
-                // Update the clock phase (0-3 for the 4 icons)
-                _clockPhase = (_clockPhase + 1) % 4;
-                
-                // Request UI update
-                InvokeAsync(StateHasChanged);
-            }, null, 0, 1000); // Update every second
-        }
-    }
     
     public void Dispose()
     {
@@ -221,6 +225,17 @@
     private void ToggleExpand()
     {
         _isExpanded = !_isExpanded;
+        
+        // Update the expansion state in EditorState
+        if (_isExpanded)
+        {
+            EditorState.ExpandTask(Task.Id);
+        }
+        else
+        {
+            EditorState.CollapseTask(Task.Id);
+        }
+        
         InvokeAsync(StateHasChanged);
     }
 }

@@ -32,6 +32,9 @@ public class EditorState
     // Track expanded user stories by their ID
     private readonly HashSet<Guid> _expandedUserStories = new HashSet<Guid>();
     
+    // Track expanded tasks by their ID
+    private readonly HashSet<Guid> _expandedTasks = new HashSet<Guid>();
+    
     // Public methods to check, expand, collapse user stories
     public bool IsUserStoryExpanded(Guid userStoryId) => _expandedUserStories.Contains(userStoryId);
     
@@ -64,6 +67,37 @@ public class EditorState
             _expandedUserStories.Add(userStoryId);
         }
         // No need to notify state changed as this doesn't affect the UI directly
+    }
+    
+    // Public methods to check, expand, collapse tasks
+    public bool IsTaskExpanded(Guid taskId) => _expandedTasks.Contains(taskId);
+    
+    public void ExpandTask(Guid taskId)
+    {
+        if (!_expandedTasks.Contains(taskId))
+        {
+            _expandedTasks.Add(taskId);
+        }
+    }
+    
+    public void CollapseTask(Guid taskId)
+    {
+        if (_expandedTasks.Contains(taskId))
+        {
+            _expandedTasks.Remove(taskId);
+        }
+    }
+    
+    public void ToggleTaskExpansion(Guid taskId)
+    {
+        if (_expandedTasks.Contains(taskId))
+        {
+            _expandedTasks.Remove(taskId);
+        }
+        else
+        {
+            _expandedTasks.Add(taskId);
+        }
     }
     
     // Event handlers

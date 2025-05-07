@@ -16,7 +16,7 @@
             @if (UserStory.Tasks.Any())
             {
                 <button class="text-stone-500 hover:text-stone-600 hover:bg-stone-100 bg-white rounded-full h-6 flex items-center justify-center" title="@(IsTaskListExpanded ? "Collapse tasks" : "Expand tasks")" @onclick:stopPropagation="true" @onclick="ToggleTaskList">
-                    <span class="material-symbols-outlined">@(IsTaskListExpanded ? "expand_less" : "expand_more")</span>
+                    <span class="material-symbols-outlined transition-transform duration-200 @(IsTaskListExpanded ? "rotate-180" : "")">expand_more</span>
                 </button>
             }
             <button class="text-stone-500 hover:text-stone-600 hover:bg-stone-100 bg-white rounded-full h-6 flex items-center justify-center" title="Add task" @onclick:stopPropagation="true" @onclick="HandleCreateTask">
@@ -25,13 +25,15 @@
         </div>
     </div>
     
-    @if (UserStory.Tasks.Any() && IsTaskListExpanded)
+    @if (UserStory.Tasks.Any())
     {
-        <div class="ml-4 mt-2 space-y-1">
-            @foreach (var task in UserStory.Tasks.OrderBy(t => t.TaskNumber))
-            {
-                <EditorListTask Task="@task" UserStory="@UserStory" />
-            }
+        <div class="ml-4 overflow-hidden transition-all duration-300" style="max-height: @(IsTaskListExpanded ? $"{UserStory.Tasks.Count * 50}px" : "0"); opacity: @(IsTaskListExpanded ? "1" : "0"); margin-top: @(IsTaskListExpanded ? "0.5rem" : "0");">
+            <div class="space-y-1">
+                @foreach (var task in UserStory.Tasks.OrderBy(t => t.TaskNumber))
+                {
+                    <EditorListTask Task="@task" UserStory="@UserStory" />
+                }
+            </div>
         </div>
     }
 </div>
