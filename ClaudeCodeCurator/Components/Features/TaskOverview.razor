@@ -47,7 +47,20 @@
                     
                     <div class="flex items-center space-x-2">
                         <div class="flex flex-col gap-y-0.5">
-                            @if (showButtons && !isFirst)
+                            @{
+                                // Check if previous task is finished or in progress
+                                bool prevTaskIsFinishedOrInProgress = false;
+                                if (!isFirst && i > 0)
+                                {
+                                    var prevTask = _tasks[i - 1];
+                                    prevTaskIsFinishedOrInProgress = prevTask.FinishedByAiUtc.HasValue || 
+                                                                    (prevTask.RequestedByAiUtc.HasValue && !prevTask.FinishedByAiUtc.HasValue);
+                                }
+                                
+                                bool canMoveUp = showButtons && !isFirst && !prevTaskIsFinishedOrInProgress;
+                            }
+                            
+                            @if (canMoveUp)
                             {
                                 <button @onclick="() => MoveTaskUp(task)" 
                                         class="w-6 h-3 rounded-full bg-white hover:bg-stone-100 text-stone-600 border border-stone-300 flex items-center justify-center transition-colors">
