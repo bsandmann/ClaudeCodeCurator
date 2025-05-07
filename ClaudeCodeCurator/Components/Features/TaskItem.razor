@@ -10,7 +10,7 @@
 @inject HumanizedTimeService HumanizedTimeService
 @implements IDisposable
 
-<div class="@(Task.Paused ? "bg-stone-300" : "bg-stone-100") p-2 rounded">
+<div class="@(Task.Paused ? "bg-stone-300" : "bg-stone-100") p-2 rounded cursor-pointer hover:shadow-sm transition-all @(_isExpanded ? "shadow-sm" : "")" @onclick="ToggleExpand">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-1 flex-grow overflow-hidden">
             <span class="text-xs bg-stone-200 rounded px-1 flex-shrink-0">US-@Task.UserStoryNumber/T-@Task.TaskNumber</span>
@@ -18,17 +18,18 @@
             <span class="text-xs px-1.5 py-0.5 rounded @GetTaskTypeClass(Task.Type) flex-shrink-0">
                 @Task.Type
             </span>
+            <span class="material-symbols-outlined text-stone-400 transition-transform duration-200 @(_isExpanded ? "rotate-180" : "")" style="font-size: 14px;">expand_more</span>
         </div>
 
         <div class="flex items-center space-x-2 ml-1 flex-shrink-0">
-            <button @onclick="ResetTask"
+            <button @onclick:stopPropagation="true" @onclick="ResetTask"
                     class="text-xs px-1.5 py-0.5 rounded bg-stone-200 hover:bg-stone-300 text-stone-700 flex items-center space-x-1 transition-colors hover:shadow-sm">
                 <span class="material-symbols-outlined" style="font-size: 14px;">keyboard_return</span>
                 <span>@(_isResetting ? "Resetting..." : "Send back")</span>
             </button>
             @if (ShowPauseButton)
             {
-                <button @onclick="TogglePause"
+                <button @onclick:stopPropagation="true" @onclick="TogglePause"
                     class="text-xs px-1.5 py-0.5 rounded bg-stone-200 hover:bg-stone-300 text-stone-700 flex items-center space-x-1 transition-colors hover:shadow-sm">
                     <span class="material-symbols-outlined" style="font-size: 14px;">@(Task.Paused ? "play_arrow" : "pause")</span>
                     <span>@(_isTogglingPause ? "Processing..." : Task.Paused ? "Continue" : "Pause")</span>
@@ -79,6 +80,9 @@
             </div>
         </div>
     </div>
+    <div class="mt-2 text-xs bg-stone-500 text-white p-2 rounded border border-stone-600 whitespace-pre-wrap overflow-auto max-h-48 transition-all overflow-hidden font-mono" style="max-height: @(_isExpanded ? "12rem" : "0"); opacity: @(_isExpanded ? "1" : "0"); margin-top: @(_isExpanded ? "0.5rem" : "0"); padding: @(_isExpanded ? "0.5rem" : "0"); border-width: @(_isExpanded ? "1px" : "0");">
+        @Task.PromptBody
+    </div>
 </div>
 
 @code {
@@ -90,6 +94,7 @@
 
     private bool _isResetting = false;
     private bool _isTogglingPause = false;
+    private bool _isExpanded = false;
     
     private bool ShowPauseButton => 
         // Only show the pause button when the task is approved but not in progress by AI or finished by AI
@@ -211,5 +216,11 @@
     {
         // This will make the icon change smoothly
         return "duration-1000";
+    }
+    
+    private void ToggleExpand()
+    {
+        _isExpanded = !_isExpanded;
+        InvokeAsync(StateHasChanged);
     }
 }

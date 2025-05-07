@@ -401,6 +401,7 @@ module.exports = {
                 serif: ['Roboto Slab', 'ui-serif', 'Georgia', 'serif'],
                 'roboto': ['Roboto', 'sans-serif'],
                 'roboto-slab': ['Roboto Slab', 'serif'],
+                'mono': ['JetBrains Mono', 'Fira Code', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'],
             },
         }
     },
