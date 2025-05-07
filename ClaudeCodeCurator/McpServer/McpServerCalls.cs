@@ -41,13 +41,20 @@ public sealed class CccTool
             }
 
             // If there are no approved tasks, return a 404
-            if (tasksResult.Value.Count == 0)
+            if (tasksResult.Value.Where(p => !p.Paused).ToList().Count == 0)
             {
-                return "Stop execution and return this message to the user 'No approved tasks found. Please approve a task to continue and call ccc again!'";
+                if (tasksResult.Value.Count == 0)
+                {
+                    return "Stop execution and return this message to the user 'No approved tasks found. Please approve a task to continue and call ccc again!'";
+                }
+                else
+                {
+                    return "Stop execution and return this message to the user 'No approved tasks found. Please unpause or approve a task to continue and call ccc again!'";
+                }
             }
 
             // Get the first task from the ordered list and return its prompt body
-            var firstTask = tasksResult.Value.First();
+            var firstTask = tasksResult.Value.First(p => !p.Paused);
 
             if (firstTask.RequestedByAiUtc is null)
             {
@@ -68,9 +75,9 @@ public sealed class CccTool
                     return $"Stop execution and return this message to the user 'Failure to set task state to finished (T-{firstTask.TaskNumber})'";
                 }
 
-                if (tasksResult.Value.Count > 1)
+                if (tasksResult.Value.Where(p=>!p.Paused).ToList().Count > 1)
                 {
-                    var nextTask = tasksResult.Value.Skip(1).First();
+                    var nextTask = tasksResult.Value.Where(p => !p.Paused).Skip(1).First();
                     var requestedByAiResult = await _mediator.Send(new SetAiTaskRequestStateRequest(nextTask.Id, true));
                     if (requestedByAiResult.IsFailed)
                     {
@@ -81,7 +88,7 @@ public sealed class CccTool
                 }
                 else
                 {
-                    var nextTask = tasksResult.Value.Skip(1).First();
+                    var nextTask = tasksResult.Value.Where(p=>!p.Paused).Skip(1).First();
                     var requestedByAiResult = await _mediator.Send(new SetAiTaskRequestStateRequest(nextTask.Id, true));
                     if (requestedByAiResult.IsFailed)
                     {
