@@ -37,39 +37,30 @@ public class GetApprovedTaskListHandler : IRequestHandler<GetApprovedTaskListReq
                 return Result.Fail($"Project with ID '{request.ProjectId}' not found");
             }
 
-            // Query for approved tasks by starting with Tasks that are approved
-            // then joining with ProjectTaskOrders for the specific project and joining with UserStories
-            // Order by Position in ProjectTaskOrders
-            var approvedTasks = await context.Tasks
+            // Query for approved tasks using navigation properties
+            // Start with ProjectTaskOrders for the specific project
+            // Then navigate to Tasks that are approved
+            var approvedTasks = await context.ProjectTaskOrders
                 .AsNoTracking()
-                .Where(task => task.ApprovedByUserUtc != null) // Ensure task is approved
-                .Join(
-                    context.ProjectTaskOrders.Where(pto => pto.ProjectId == request.ProjectId),
-                    task => task.Id,
-                    pto => pto.TaskId,
-                    (task, pto) => new { Task = task, TaskOrder = pto }
-                )
-                .Join(
-                    context.UserStories.AsNoTracking(),
-                    joined => joined.Task.UserStoryId,
-                    userStory => userStory.Id,
-                    (joined, userStory) => new { joined.Task, joined.TaskOrder, UserStory = userStory }
-                )
-                .OrderBy(x => x.TaskOrder.Position)
-                .Select(x => new TaskModel
+                .Where(pto => pto.ProjectId == request.ProjectId)
+                .Include(pto => pto.Task)
+                    .ThenInclude(task => task.UserStory)
+                .Where(pto => pto.Task.ApprovedByUserUtc != null) // Ensure task is approved
+                .OrderBy(pto => pto.Position)
+                .Select(pto => new TaskModel
                 {
-                    Id = x.Task.Id,
-                    Name = x.Task.Name,
-                    PromptBody = x.Task.PromptBody,
-                    TaskNumber = x.Task.TaskNumber,
-                    Type = x.Task.Type,
-                    UserStoryId = x.Task.UserStoryId,
-                    UserStoryNumber = x.UserStory.UserStoryNumber,
-                    ApprovedByUserUtc = x.Task.ApprovedByUserUtc,
-                    RequestedByAiUtc = x.Task.RequestedByAiUtc,
-                    FinishedByAiUtc = x.Task.FinishedByAiUtc,
-                    CreatedOrUpdatedUtc = x.Task.CreatedOrUpdatedUtc,
-                    Paused = x.Task.Paused
+                    Id = pto.Task.Id,
+                    Name = pto.Task.Name,
+                    PromptBody = pto.Task.PromptBody,
+                    TaskNumber = pto.Task.TaskNumber,
+                    Type = pto.Task.Type,
+                    UserStoryId = pto.Task.UserStoryId,
+                    UserStoryNumber = pto.Task.UserStory.UserStoryNumber,
+                    ApprovedByUserUtc = pto.Task.ApprovedByUserUtc,
+                    RequestedByAiUtc = pto.Task.RequestedByAiUtc,
+                    FinishedByAiUtc = pto.Task.FinishedByAiUtc,
+                    CreatedOrUpdatedUtc = pto.Task.CreatedOrUpdatedUtc,
+                    Paused = pto.Task.Paused
                 })
                 .ToListAsync(cancellationToken);
 
