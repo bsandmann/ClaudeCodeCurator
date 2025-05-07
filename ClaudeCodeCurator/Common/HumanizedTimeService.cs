@@ -29,30 +29,50 @@ public class HumanizedTimeService
     }
     
     /// <summary>
-    /// Gets the time elapsed in seconds since the given DateTime.
+    /// Gets the time elapsed in the most appropriate unit since the given DateTime.
     /// </summary>
     /// <param name="dateTime">The DateTime to measure from (should be in UTC).</param>
-    /// <returns>A string representing the seconds elapsed (e.g., "42s").</returns>
+    /// <returns>A string representing the time elapsed with appropriate unit (e.g., "42s", "5m", "3h").</returns>
     public string GetSecondsElapsed(DateTime? dateTime)
     {
         if (!dateTime.HasValue)
             return string.Empty;
             
         var timeSpan = DateTime.UtcNow - dateTime.Value;
+        
+        // Use appropriate unit based on the elapsed time
+        if (timeSpan.TotalHours >= 24)
+            return $"{(int)timeSpan.TotalDays}d";
+        if (timeSpan.TotalMinutes >= 60)
+            return $"{(int)timeSpan.TotalHours}h";
+        if (timeSpan.TotalSeconds >= 60)
+            return $"{(int)timeSpan.TotalMinutes}m";
+            
         return $"{(int)timeSpan.TotalSeconds}s";
     }
     
     /// <summary>
-    /// Gets the time elapsed in minutes since the given DateTime.
+    /// Gets the time elapsed in the most appropriate unit since the given DateTime.
     /// </summary>
     /// <param name="dateTime">The DateTime to measure from (should be in UTC).</param>
-    /// <returns>A string representing the minutes elapsed (e.g., "5m").</returns>
+    /// <returns>A string representing the time elapsed with appropriate unit (e.g., "5m", "3h", "2d").</returns>
     public string GetMinutesElapsed(DateTime? dateTime)
     {
         if (!dateTime.HasValue)
             return string.Empty;
             
         var timeSpan = DateTime.UtcNow - dateTime.Value;
+        
+        // Use appropriate unit based on the elapsed time
+        if (timeSpan.TotalDays >= 365)
+            return $"{(int)(timeSpan.TotalDays / 365)}y";
+        if (timeSpan.TotalDays >= 30)
+            return $"{(int)(timeSpan.TotalDays / 30)}mo";
+        if (timeSpan.TotalHours >= 24)
+            return $"{(int)timeSpan.TotalDays}d";
+        if (timeSpan.TotalMinutes >= 60)
+            return $"{(int)timeSpan.TotalHours}h";
+            
         return $"{(int)timeSpan.TotalMinutes}m";
     }
 }
