@@ -27,4 +27,32 @@ public class HumanizedTimeService
             
         return $"{(int)(timeSpan.TotalDays / 365)} year{((int)(timeSpan.TotalDays / 365) == 1 ? "" : "s")} ago";
     }
+    
+    /// <summary>
+    /// Gets the time elapsed in seconds since the given DateTime.
+    /// </summary>
+    /// <param name="dateTime">The DateTime to measure from (should be in UTC).</param>
+    /// <returns>A string representing the seconds elapsed (e.g., "42s").</returns>
+    public string GetSecondsElapsed(DateTime? dateTime)
+    {
+        if (!dateTime.HasValue)
+            return string.Empty;
+            
+        var timeSpan = DateTime.UtcNow - dateTime.Value;
+        return $"{(int)timeSpan.TotalSeconds}s";
+    }
+    
+    /// <summary>
+    /// Gets the time elapsed in minutes since the given DateTime.
+    /// </summary>
+    /// <param name="dateTime">The DateTime to measure from (should be in UTC).</param>
+    /// <returns>A string representing the minutes elapsed (e.g., "5m").</returns>
+    public string GetMinutesElapsed(DateTime? dateTime)
+    {
+        if (!dateTime.HasValue)
+            return string.Empty;
+            
+        var timeSpan = DateTime.UtcNow - dateTime.Value;
+        return $"{(int)timeSpan.TotalMinutes}m";
+    }
 }

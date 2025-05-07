@@ -38,7 +38,7 @@ public class GetApprovedTaskListHandler : IRequestHandler<GetApprovedTaskListReq
             }
 
             // Query for approved tasks by starting with Tasks that are approved
-            // then joining with ProjectTaskOrders for the specific project
+            // then joining with ProjectTaskOrders for the specific project and joining with UserStories
             // Order by Position in ProjectTaskOrders
             var approvedTasks = await context.Tasks
                 .AsNoTracking()
@@ -49,6 +49,12 @@ public class GetApprovedTaskListHandler : IRequestHandler<GetApprovedTaskListReq
                     pto => pto.TaskId,
                     (task, pto) => new { Task = task, TaskOrder = pto }
                 )
+                .Join(
+                    context.UserStories.AsNoTracking(),
+                    joined => joined.Task.UserStoryId,
+                    userStory => userStory.Id,
+                    (joined, userStory) => new { joined.Task, joined.TaskOrder, UserStory = userStory }
+                )
                 .OrderBy(x => x.TaskOrder.Position)
                 .Select(x => new TaskModel
                 {
@@ -58,6 +64,7 @@ public class GetApprovedTaskListHandler : IRequestHandler<GetApprovedTaskListReq
                     TaskNumber = x.Task.TaskNumber,
                     Type = x.Task.Type,
                     UserStoryId = x.Task.UserStoryId,
+                    UserStoryNumber = x.UserStory.UserStoryNumber,
                     ApprovedByUserUtc = x.Task.ApprovedByUserUtc,
                     RequestedByAiUtc = x.Task.RequestedByAiUtc,
                     FinishedByAiUtc = x.Task.FinishedByAiUtc,

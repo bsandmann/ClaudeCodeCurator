@@ -26,4 +26,7 @@ public class TaskModel
     
     // Reference to parent user story by ID only
     public Guid UserStoryId { get; set; }
+    
+    // User story number for display purposes
+    public int UserStoryNumber { get; set; }
 }
