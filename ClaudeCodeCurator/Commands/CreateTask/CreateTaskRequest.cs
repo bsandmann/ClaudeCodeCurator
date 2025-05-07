@@ -19,19 +19,29 @@ public class CreateTaskRequest : IRequest<Result<Guid>>
     
     public TaskType Type { get; }
     
-    public string ReferenceUserStory { get; }
+    public bool ReferenceUserStory { get; }
+    
+    public bool PromptAppendThink { get; }
+    public bool PromptAppendThinkHard { get; }
+    public bool PromptAppendDoNotChange { get; }
 
     public CreateTaskRequest(
         string name, 
         string promptBody, 
         Guid userStoryId, 
         TaskType type = TaskType.Task,
-        string referenceUserStory = "")
+        bool referenceUserStory = false,
+        bool promptAppendThink = false,
+        bool promptAppendThinkHard = false,
+        bool promptAppendDoNotChange = false)
     {
         Name = name;
         PromptBody = promptBody;
         UserStoryId = userStoryId;
         Type = type;
         ReferenceUserStory = referenceUserStory;
+        PromptAppendThink = promptAppendThink;
+        PromptAppendThinkHard = promptAppendThinkHard;
+        PromptAppendDoNotChange = promptAppendDoNotChange;
     }
 }

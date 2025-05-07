@@ -21,7 +21,12 @@ public class TaskEntity
     public TaskType Type { get; set; } = TaskType.Task;
     
     // Reference to another user story (optional)
-    public string ReferenceUserStory { get; set; } = string.Empty;
+    public bool ReferenceUserStory { get; set; } = false;
+    
+    // Prompt modifiers
+    public bool PromptAppendThink { get; set; } = false;
+    public bool PromptAppendThinkHard { get; set; } = false;
+    public bool PromptAppendDoNotChange { get; set; } = false;
     
     // Date properties for tracking task lifecycle
     public DateTime? ApprovedByUserUtc { get; set; }

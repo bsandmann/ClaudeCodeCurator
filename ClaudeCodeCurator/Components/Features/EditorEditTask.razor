@@ -68,11 +68,29 @@
                 </div>
             </div>
 
-            <div class="mb-2">
+            <div class="mb-2 space-y-2">
                 <div class="flex items-center">
                     <InputCheckbox id="referenceUserStory" @bind-Value="_model.ReferenceUserStory" 
                                   class="mr-2 h-4 w-4 accent-stone-500 focus:ring-stone-500 focus:ring-offset-0" />
                     <label for="referenceUserStory" class="text-sm font-medium text-stone-700">Reference UserStory description in prompt</label>
+                </div>
+                
+                <div class="flex items-center">
+                    <InputCheckbox id="promptAppendThink" @bind-Value="_model.PromptAppendThink" 
+                                  class="mr-2 h-4 w-4 accent-stone-500 focus:ring-stone-500 focus:ring-offset-0" />
+                    <label for="promptAppendThink" class="text-sm font-medium text-stone-700">Append "Think" to prompt</label>
+                </div>
+                
+                <div class="flex items-center">
+                    <InputCheckbox id="promptAppendThinkHard" @bind-Value="_model.PromptAppendThinkHard" 
+                                  class="mr-2 h-4 w-4 accent-stone-500 focus:ring-stone-500 focus:ring-offset-0" />
+                    <label for="promptAppendThinkHard" class="text-sm font-medium text-stone-700">Append "Think Hard" to prompt</label>
+                </div>
+                
+                <div class="flex items-center">
+                    <InputCheckbox id="promptAppendDoNotChange" @bind-Value="_model.PromptAppendDoNotChange" 
+                                  class="mr-2 h-4 w-4 accent-stone-500 focus:ring-stone-500 focus:ring-offset-0" />
+                    <label for="promptAppendDoNotChange" class="text-sm font-medium text-stone-700">Append "Do Not Change" to prompt</label>
                 </div>
             </div>
 
@@ -176,6 +194,9 @@
         public TaskType Type { get; set; } = TaskType.Task;
         
         public bool ReferenceUserStory { get; set; } = false;
+        public bool PromptAppendThink { get; set; } = false;
+        public bool PromptAppendThinkHard { get; set; } = false;
+        public bool PromptAppendDoNotChange { get; set; } = false;
     }
 
     private TaskFormModel _model = new();
@@ -237,7 +258,10 @@
             _model.Name = EditorState.SelectedTask.Name;
             _model.PromptBody = EditorState.SelectedTask.PromptBody;
             _model.Type = EditorState.SelectedTask.Type;
-            _model.ReferenceUserStory = !string.IsNullOrEmpty(EditorState.SelectedTask.ReferenceUserStory);
+            _model.ReferenceUserStory = EditorState.SelectedTask.ReferenceUserStory;
+            _model.PromptAppendThink = EditorState.SelectedTask.PromptAppendThink;
+            _model.PromptAppendThinkHard = EditorState.SelectedTask.PromptAppendThinkHard;
+            _model.PromptAppendDoNotChange = EditorState.SelectedTask.PromptAppendDoNotChange;
         }
     }
 
@@ -259,7 +283,10 @@
                 _model.Name,
                 _model.PromptBody,
                 _model.Type,
-                _model.ReferenceUserStory ? "true" : ""
+                _model.ReferenceUserStory,
+                _model.PromptAppendThink,
+                _model.PromptAppendThinkHard,
+                _model.PromptAppendDoNotChange
             );
 
             var result = await Mediator.Send(request);
@@ -409,7 +436,10 @@
                 _model.Name,
                 _model.PromptBody,
                 _model.Type,
-                _model.ReferenceUserStory ? "true" : ""
+                _model.ReferenceUserStory,
+                _model.PromptAppendThink,
+                _model.PromptAppendThinkHard,
+                _model.PromptAppendDoNotChange
             );
             
             var updateResult = await Mediator.Send(updateRequest);

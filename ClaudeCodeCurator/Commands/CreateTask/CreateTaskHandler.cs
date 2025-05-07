@@ -63,6 +63,9 @@ public class CreateTaskHandler : IRequestHandler<CreateTaskRequest, Result<Guid>
                 UserStoryId = request.UserStoryId,
                 Type = request.Type,
                 ReferenceUserStory = request.ReferenceUserStory,
+                PromptAppendThink = request.PromptAppendThink,
+                PromptAppendThinkHard = request.PromptAppendThinkHard,
+                PromptAppendDoNotChange = request.PromptAppendDoNotChange,
                 TaskNumber = project.TaskNumberCounter,
                 CreatedOrUpdatedUtc = DateTime.UtcNow
             };

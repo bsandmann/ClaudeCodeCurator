@@ -75,6 +75,24 @@ public class UpdateTaskHandler : IRequestHandler<UpdateTaskRequest, Result<bool>
                 hasChanges = true;
             }
             
+            if (task.PromptAppendThink != request.PromptAppendThink)
+            {
+                task.PromptAppendThink = request.PromptAppendThink;
+                hasChanges = true;
+            }
+            
+            if (task.PromptAppendThinkHard != request.PromptAppendThinkHard)
+            {
+                task.PromptAppendThinkHard = request.PromptAppendThinkHard;
+                hasChanges = true;
+            }
+            
+            if (task.PromptAppendDoNotChange != request.PromptAppendDoNotChange)
+            {
+                task.PromptAppendDoNotChange = request.PromptAppendDoNotChange;
+                hasChanges = true;
+            }
+            
             // Only save if there are actual changes
             if (hasChanges)
             {
