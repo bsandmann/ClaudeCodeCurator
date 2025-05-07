@@ -690,12 +690,20 @@ h1, h2, h3, h4, h5, h6 {
   height: 100vh;
 }
 
+.h-3 {
+  height: 0.75rem;
+}
+
 .w-1\/2 {
   width: 50%;
 }
 
 .w-full {
   width: 100%;
+}
+
+.w-6 {
+  width: 1.5rem;
 }
 
 .flex-1 {
@@ -748,6 +756,10 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
 }
 
+.gap-y-0\.5 {
+  row-gap: 0.125rem;
+}
+
 .space-x-1 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.25rem * var(--tw-space-x-reverse));
@@ -770,6 +782,12 @@ h1, h2, h3, h4, h5, h6 {
   --tw-space-y-reverse: 0;
   margin-top: calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(0.5rem * var(--tw-space-y-reverse));
+}
+
+.space-y-0 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0px * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0px * var(--tw-space-y-reverse));
 }
 
 .overflow-auto {

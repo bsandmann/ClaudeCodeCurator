@@ -1,6 +1,6 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
-@using ClaudeCodeCurator.Commands.GetProjectByLastUsed
 @using ClaudeCodeCurator.Commands.GetApprovedTaskList
+@using ClaudeCodeCurator.Commands.MoveTaskInProjectOrder
 @using ClaudeCodeCurator.Models
 @using ClaudeCodeCurator.Entities
 @using ClaudeCodeCurator.Common
@@ -25,13 +25,52 @@
             <p>@_errorMessage</p>
         </div>
     }
+    else if (Project == null)
+    {
+        <div class="text-stone-500 flex justify-center items-center h-24">
+            No project selected.
+        </div>
+    }
     else if (_tasks != null && _tasks.Count > 0)
     {
         <div class="overflow-y-auto flex-grow">
             <div class="space-y-2">
-                @foreach (var task in _tasks)
+                @for (int i = 0; i < _tasks.Count; i++)
                 {
-                    <TaskItem Task="task" OnTaskReset="HandleTaskReset" OnTaskPauseChanged="HandleTaskPauseChanged" />
+                    var task = _tasks[i];
+                    bool isFirst = i == 0;
+                    bool isLast = i == _tasks.Count - 1;
+                    
+                    <div class="flex items-center space-x-2">
+                        <div class="flex flex-col gap-y-0.5">
+                            @if (!isFirst)
+                            {
+                                <button @onclick="() => MoveTaskUp(task)" 
+                                        class="w-6 h-3 rounded-full bg-white hover:bg-stone-100 text-stone-600 border border-stone-300 flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined" style="font-size: 12px;">arrow_drop_up</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <div class="w-6 h-3"></div> <!-- Spacer for alignment -->
+                            }
+                            
+                            @if (!isLast)
+                            {
+                                <button @onclick="() => MoveTaskDown(task)" 
+                                        class="w-6 h-3 rounded-full bg-white hover:bg-stone-100 text-stone-600 border border-stone-300 flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined" style="font-size: 12px;">arrow_drop_down</span>
+                                </button>
+                            }
+                            else 
+                            {
+                                <div class="w-6 h-3"></div> <!-- Spacer for alignment -->
+                            }
+                        </div>
+                        <div class="flex-grow">
+                            <TaskItem Task="task" OnTaskReset="HandleTaskReset" OnTaskPauseChanged="HandleTaskPauseChanged" />
+                        </div>
+                    </div>
                 }
             </div>
         </div>
@@ -45,6 +84,9 @@
 </div>
 
 @code {
+    [Parameter]
+    public ProjectModel? Project { get; set; }
+    
     private bool _loading = true;
     private string? _errorMessage;
     private List<TaskModel>? _tasks;
@@ -55,6 +97,15 @@
         EditorState.StateChanged += OnStateChanged;
         
         await LoadApprovedTasks();
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        // Load tasks when project changes
+        if (Project != null)
+        {
+            await LoadApprovedTasks();
+        }
     }
     
     public void Dispose()
@@ -72,23 +123,21 @@
     
     private async Task LoadApprovedTasks()
     {
+        // Don't attempt to load tasks if there's no project
+        if (Project == null) 
+        {
+            _tasks = null;
+            _loading = false;
+            return;
+        }
+        
         try
         {
             _loading = true;
             _errorMessage = null;
             
-            // First, get the latest project
-            var projectResult = await Mediator.Send(new GetProjectByLastUsedRequest());
-            
-            if (!projectResult.IsSuccess)
-            {
-                _errorMessage = projectResult.Errors.FirstOrDefault()?.Message 
-                    ?? "Failed to load current project.";
-                return;
-            }
-            
             // Use the project ID to get approved tasks
-            var tasksResult = await Mediator.Send(new GetApprovedTaskListRequest(projectResult.Value.Id));
+            var tasksResult = await Mediator.Send(new GetApprovedTaskListRequest(Project.Id));
             
             if (tasksResult.IsSuccess)
             {
@@ -130,4 +179,80 @@
         }
     }
     
+    // Methods for moving tasks up and down in the list
+    private async Task MoveTaskUp(TaskModel task)
+    {
+        if (Project == null) return;
+        
+        try
+        {
+            int taskIndex = _tasks?.IndexOf(task) ?? -1;
+            if (taskIndex <= 0 || taskIndex >= (_tasks?.Count ?? 0)) return;
+            
+            // Get the task before this one to use as a reference
+            TaskModel previousTask = _tasks[taskIndex - 1];
+            
+            // Create a request to move this task before the previous task
+            var request = new MoveTaskInProjectOrderRequest(
+                Project.Id, 
+                task.Id,
+                PositionType.BeforeTask,
+                previousTask.Id);
+                
+            var result = await Mediator.Send(request);
+            
+            if (result.IsSuccess)
+            {
+                // Reload the task list to show the new order
+                await LoadApprovedTasks();
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                Console.Error.WriteLine($"Failed to move task up: {result.Errors.FirstOrDefault()?.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error moving task up: {ex.Message}");
+        }
+    }
+    
+    private async Task MoveTaskDown(TaskModel task)
+    {
+        if (Project == null) return;
+        
+        try
+        {
+            int taskIndex = _tasks?.IndexOf(task) ?? -1;
+            if (taskIndex < 0 || taskIndex >= (_tasks?.Count ?? 0) - 1) return;
+            
+            // Get the task after this one to use as a reference
+            TaskModel nextTask = _tasks[taskIndex + 1];
+            
+            // Create a request to move this task after the next task
+            var request = new MoveTaskInProjectOrderRequest(
+                Project.Id, 
+                task.Id,
+                PositionType.AfterTask,
+                nextTask.Id);
+                
+            var result = await Mediator.Send(request);
+            
+            if (result.IsSuccess)
+            {
+                // Reload the task list to show the new order
+                await LoadApprovedTasks();
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                Console.Error.WriteLine($"Failed to move task down: {result.Errors.FirstOrDefault()?.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error moving task down: {ex.Message}");
+        }
+    }
 }

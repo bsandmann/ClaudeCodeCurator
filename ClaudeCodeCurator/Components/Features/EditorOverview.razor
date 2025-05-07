@@ -1,5 +1,4 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
-@using ClaudeCodeCurator.Commands.GetProjectByLastUsed
 @using ClaudeCodeCurator.Commands.CreateProject
 @using ClaudeCodeCurator.Models
 @using ClaudeCodeCurator.Common
@@ -9,22 +8,16 @@
 @implements IDisposable
 
 <div class="h-full border-r border-stone-200 p-0 flex flex-col">
-    @if (_loading)
-    {
-        <div class="flex justify-center items-center h-24">
-            <p class="text-stone-500">Loading project data...</p>
-        </div>
-    }
-    else if (_errorMessage != null)
+    @if (_errorMessage != null)
     {
         <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-2" role="alert">
             <p>@_errorMessage</p>
         </div>
     }
-    else if (_project != null)
+    else if (Project != null)
     {
         <div class="flex-grow @(_isDetailVisible ? "h-3/5" : "h-full") overflow-hidden">
-            <ClaudeCodeCurator.Components.Features.EditorList Project="@_project" />
+            <ClaudeCodeCurator.Components.Features.EditorList Project="@Project" />
         </div>
 
         @if (_isDetailVisible)
@@ -50,17 +43,20 @@
 </div>
 
 @code {
-    private bool _loading = true;
-    private string? _errorMessage;
-    private ProjectModel? _project;
-    private bool _isDetailVisible = false;
+    [Parameter]
+    public ProjectModel? Project { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    private string? _errorMessage;
+    private bool _isDetailVisible = false;
+    private bool _isCreatingProject = false;
+
+    protected override void OnInitialized()
     {
         // Subscribe to state change events
         EditorState.StateChanged += OnStateChanged;
-
-        await LoadLatestProject();
+        
+        // Set initial detail visibility based on EditorState
+        _isDetailVisible = EditorState.CurrentMode != EditorState.DetailViewMode.None;
     }
 
     public void Dispose()
@@ -74,64 +70,15 @@
     {
         // Update the detail visibility based on the EditorState
         _isDetailVisible = EditorState.CurrentMode != EditorState.DetailViewMode.None;
-        
-        // Reload the project data when the global state changes
-        // This ensures the task list in EditorList is refreshed when tasks are reset
-        await LoadLatestProject();
-        
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task LoadLatestProject()
+    private void HandleRefreshNeeded(bool needsRefresh)
     {
-        try
-        {
-            _loading = true;
-
-            var result = await Mediator.Send(new GetProjectByLastUsedRequest());
-
-            if (result.IsSuccess)
-            {
-                _project = result.Value;
-                _errorMessage = null;
-
-                // Set initial detail visibility based on EditorState
-                _isDetailVisible = EditorState.CurrentMode != EditorState.DetailViewMode.None;
-            }
-            else
-            {
-                var errorMessage = result.Errors.FirstOrDefault()?.Message;
-
-                // Check if the error is specifically about no projects found
-                if (errorMessage == "No projects found in the system")
-                {
-                    // Set project to null but don't show an error message
-                    // This will trigger our "Create New Project" UI
-                    _project = null;
-                    _errorMessage = null;
-                }
-                else
-                {
-                    // Handle other errors normally
-                    _errorMessage = errorMessage ?? "Unknown error occurred while loading the project.";
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _errorMessage = $"Failed to load project: {ex.Message}";
-        }
-        finally
-        {
-            _loading = false;
-        }
-    }
-
-    private async Task HandleRefreshNeeded(bool needsRefresh)
-    {
+        // Just notify the parent to refresh data if needed
         if (needsRefresh)
         {
-            await LoadLatestProject();
+            EditorState.NotifyGlobalStateChanged();
         }
     }
 
@@ -145,7 +92,9 @@
     {
         try
         {
-            _loading = true;
+            if (_isCreatingProject) return;
+            
+            _isCreatingProject = true;
             _errorMessage = null;
 
             // Create a new default project
@@ -154,8 +103,8 @@
 
             if (createResult.IsSuccess)
             {
-                // Reload the project list to show the new project
-                await LoadLatestProject();
+                // Notify the parent that a global refresh is needed
+                EditorState.NotifyGlobalStateChanged();
             }
             else
             {
@@ -168,7 +117,7 @@
         }
         finally
         {
-            _loading = false;
+            _isCreatingProject = false;
         }
     }
 }

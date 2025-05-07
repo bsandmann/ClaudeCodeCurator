@@ -1,5 +1,12 @@
 ﻿@page "/ui"
 @using ClaudeCodeCurator.Components.Features
+@using ClaudeCodeCurator.Commands.GetProjectByLastUsed
+@using ClaudeCodeCurator.Models
+@using ClaudeCodeCurator.Common
+@using MediatR
+@inject IMediator Mediator
+@inject EditorState EditorState
+@implements IDisposable
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Claude Code Curator</PageTitle>
@@ -7,16 +14,92 @@
 <div class="flex flex-col h-screen">
     <TopBar />
 
-    <div class="flex flex-1 overflow-hidden">
-        <div class="w-1/2">
-            <EditorOverview />
+    @if (_loading)
+    {
+        <div class="flex justify-center items-center h-24">
+            <p class="text-stone-500">Loading project data...</p>
         </div>
-        <div class="w-1/2">
-            <TaskOverview />
+    }
+    else if (_errorMessage != null)
+    {
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-2" role="alert">
+            <p>@_errorMessage</p>
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="flex flex-1 overflow-hidden">
+            <div class="w-1/2">
+                <EditorOverview Project="@_project" />
+            </div>
+            <div class="w-1/2">
+                <TaskOverview Project="@_project" />
+            </div>
+        </div>
+    }
 </div>
 
 @code {
+    private bool _loading = true;
+    private string? _errorMessage;
+    private ProjectModel? _project;
 
+    protected override async Task OnInitializedAsync()
+    {
+        // Subscribe to state changes that might affect the project
+        EditorState.StateChanged += OnStateChanged;
+        
+        await LoadLatestProject();
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe from state changes
+        EditorState.StateChanged -= OnStateChanged;
+    }
+
+    private async Task OnStateChanged()
+    {
+        // Reload the project data when global state changes
+        await LoadLatestProject();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadLatestProject()
+    {
+        try
+        {
+            _loading = true;
+            _errorMessage = null;
+
+            var result = await Mediator.Send(new GetProjectByLastUsedRequest());
+
+            if (result.IsSuccess)
+            {
+                _project = result.Value;
+            }
+            else
+            {
+                var errorMessage = result.Errors.FirstOrDefault()?.Message;
+                
+                // Project might not exist yet which is okay
+                if (errorMessage == "No projects found in the system")
+                {
+                    _project = null;
+                }
+                else
+                {
+                    _errorMessage = errorMessage ?? "Unknown error occurred while loading the project.";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Failed to load project: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
 }
