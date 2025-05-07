@@ -2,12 +2,13 @@
 @using ClaudeCodeCurator.Models
 @using ClaudeCodeCurator.Entities
 @using ClaudeCodeCurator.Commands.SetResetTask
+@using ClaudeCodeCurator.Commands.SetTaskPause
 @using ClaudeCodeCurator.Common
 @using MediatR
 @inject IMediator Mediator
 @inject EditorState EditorState
 
-<div class="bg-gray-100 p-2 rounded">
+<div class="@(Task.Paused ? "bg-gray-300" : "bg-gray-100") p-2 rounded">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-1 flex-grow overflow-hidden">
             <span class="text-xs bg-gray-200 rounded px-1 flex-shrink-0">T-@Task.TaskNumber</span>
@@ -23,14 +24,24 @@
                 <span class="material-symbols-outlined" style="font-size: 14px;">keyboard_return</span>
                 <span>@(_isResetting ? "Resetting..." : "Send back")</span>
             </button>
-            <button
-                class="text-xs px-1.5 py-0.5 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center space-x-1 transition-colors hover:shadow-sm">
-                <span class="material-symbols-outlined" style="font-size: 14px;">pause</span>
-                <span>Pause</span>
-            </button>
+            @if (ShowPauseButton)
+            {
+                <button @onclick="TogglePause"
+                    class="text-xs px-1.5 py-0.5 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center space-x-1 transition-colors hover:shadow-sm">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">@(Task.Paused ? "play_arrow" : "pause")</span>
+                    <span>@(_isTogglingPause ? "Processing..." : Task.Paused ? "Continue" : "Pause")</span>
+                </button>
+            }
 
             <div class="flex items-center space-x-1">
-                @if (!Task.ApprovedByUserUtc.HasValue)
+                @if (Task.Paused)
+                {
+                    <span class="px-0.5 rounded bg-yellow-100 text-yellow-800 flex items-center h-5">
+                        <span class="material-symbols-outlined"
+                              style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">pause_circle</span>
+                    </span>
+                }
+                else if (!Task.ApprovedByUserUtc.HasValue)
                 {
                     <span class="px-0.5 rounded bg-amber-100 text-amber-800 flex items-center h-5">
                         <span class="material-symbols-outlined"
@@ -61,14 +72,6 @@
                         </span>
                     }
                 }
-
-                @if (Task.Paused)
-                {
-                    <span class="px-0.5 rounded bg-yellow-100 text-yellow-800 flex items-center h-5">
-                        <span class="material-symbols-outlined"
-                              style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">pause_circle</span>
-                    </span>
-                }
             </div>
         </div>
     </div>
@@ -78,8 +81,17 @@
     [Parameter, EditorRequired] public TaskModel Task { get; set; } = null!;
 
     [Parameter] public EventCallback<bool> OnTaskReset { get; set; }
+    
+    [Parameter] public EventCallback<bool> OnTaskPauseChanged { get; set; }
 
     private bool _isResetting = false;
+    private bool _isTogglingPause = false;
+    
+    private bool ShowPauseButton => 
+        // Only show the pause button when the task is approved but not in progress by AI or finished by AI
+        Task.ApprovedByUserUtc.HasValue && 
+        !Task.RequestedByAiUtc.HasValue && 
+        !Task.FinishedByAiUtc.HasValue;
 
     private async Task ResetTask()
     {
@@ -107,6 +119,37 @@
         finally
         {
             _isResetting = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    
+    private async Task TogglePause()
+    {
+        try
+        {
+            _isTogglingPause = true;
+            await InvokeAsync(StateHasChanged);
+
+            // Toggle the pause state to the opposite of the current state
+            var request = new SetTaskPauseRequest(Task.Id, !Task.Paused);
+            var result = await Mediator.Send(request);
+
+            if (result.IsSuccess)
+            {
+                // Notify parent that a task's pause state changed
+                await OnTaskPauseChanged.InvokeAsync(true);
+                
+                // Don't use global state change as we only want to update TaskOverview
+                // EditorState.NotifyGlobalStateChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error toggling task pause state: {ex.Message}");
+        }
+        finally
+        {
+            _isTogglingPause = false;
             await InvokeAsync(StateHasChanged);
         }
     }

@@ -31,7 +31,7 @@
             <div class="space-y-2">
                 @foreach (var task in _tasks)
                 {
-                    <TaskItem Task="task" OnTaskReset="HandleTaskReset" />
+                    <TaskItem Task="task" OnTaskReset="HandleTaskReset" OnTaskPauseChanged="HandleTaskPauseChanged" />
                 }
             </div>
         </div>
@@ -115,6 +115,16 @@
         if (success)
         {
             // Reload the task list when a task is reset
+            await LoadApprovedTasks();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    
+    private async Task HandleTaskPauseChanged(bool success)
+    {
+        if (success)
+        {
+            // Reload the task list when a task's pause state is changed
             await LoadApprovedTasks();
             await InvokeAsync(StateHasChanged);
         }
