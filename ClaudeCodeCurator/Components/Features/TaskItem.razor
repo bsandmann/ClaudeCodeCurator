@@ -1,8 +1,13 @@
 @namespace ClaudeCodeCurator.Components.Features
 @using ClaudeCodeCurator.Models
 @using ClaudeCodeCurator.Entities
+@using ClaudeCodeCurator.Commands.SetResetTask
+@using ClaudeCodeCurator.Common
+@using MediatR
+@inject IMediator Mediator
+@inject EditorState EditorState
 
-<div class="bg-gray-100 p-2 hover:bg-gray-200 rounded cursor-pointer transition-colors">
+<div class="bg-gray-100 p-2 rounded">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-1 flex-grow overflow-hidden">
             <span class="text-xs bg-gray-200 rounded px-1 flex-shrink-0">T-@Task.TaskNumber</span>
@@ -11,50 +16,101 @@
                 @Task.Type
             </span>
         </div>
-        
-        <div class="flex items-center space-x-1 ml-1 flex-shrink-0">
-            @if (!Task.ApprovedByUserUtc.HasValue)
-            {
-                <span class="px-0.5 rounded bg-amber-100 text-amber-800 flex items-center h-5">
-                    <span class="material-symbols-outlined" style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">do_not_disturb_on</span>
-                </span>
-            }
-            else
-            {
-                @if (Task.RequestedByAiUtc.HasValue && !Task.FinishedByAiUtc.HasValue)
+
+        <div class="flex items-center space-x-2 ml-1 flex-shrink-0">
+            <button @onclick="ResetTask"
+                    class="text-xs px-1.5 py-0.5 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center space-x-1 transition-colors hover:shadow-sm">
+                <span class="material-symbols-outlined" style="font-size: 14px;">keyboard_return</span>
+                <span>@(_isResetting ? "Resetting..." : "Send back")</span>
+            </button>
+            <button
+                class="text-xs px-1.5 py-0.5 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center space-x-1 transition-colors hover:shadow-sm">
+                <span class="material-symbols-outlined" style="font-size: 14px;">pause</span>
+                <span>Pause</span>
+            </button>
+
+            <div class="flex items-center space-x-1">
+                @if (!Task.ApprovedByUserUtc.HasValue)
                 {
-                    <span class="px-0.5 rounded bg-blue-100 text-blue-800 flex items-center h-5">
-                        <span class="material-symbols-outlined" style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">clock_loader_10</span>
-                    </span>
-                }
-                else if (Task.FinishedByAiUtc.HasValue)
-                {
-                    <span class="px-0.5 rounded bg-purple-100 text-purple-800 flex items-center h-5">
-                        <span class="material-symbols-outlined" style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">task_alt</span>
+                    <span class="px-0.5 rounded bg-amber-100 text-amber-800 flex items-center h-5">
+                        <span class="material-symbols-outlined"
+                              style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">do_not_disturb_on</span>
                     </span>
                 }
                 else
                 {
-                    <span class="px-0.5 rounded bg-green-100 text-green-800 flex items-center h-5">
-                        <span class="material-symbols-outlined" style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">pending</span>
+                    @if (Task.RequestedByAiUtc.HasValue && !Task.FinishedByAiUtc.HasValue)
+                    {
+                        <span class="px-0.5 rounded bg-blue-100 text-blue-800 flex items-center h-5">
+                            <span class="material-symbols-outlined"
+                                  style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">clock_loader_10</span>
+                        </span>
+                    }
+                    else if (Task.FinishedByAiUtc.HasValue)
+                    {
+                        <span class="px-0.5 rounded bg-purple-100 text-purple-800 flex items-center h-5">
+                            <span class="material-symbols-outlined"
+                                  style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">task_alt</span>
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="px-0.5 rounded bg-green-100 text-green-800 flex items-center h-5">
+                            <span class="material-symbols-outlined"
+                                  style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">pending</span>
+                        </span>
+                    }
+                }
+
+                @if (Task.Paused)
+                {
+                    <span class="px-0.5 rounded bg-yellow-100 text-yellow-800 flex items-center h-5">
+                        <span class="material-symbols-outlined"
+                              style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">pause_circle</span>
                     </span>
                 }
-            }
-            
-            @if (Task.Paused)
-            {
-                <span class="px-0.5 rounded bg-yellow-100 text-yellow-800 flex items-center h-5">
-                    <span class="material-symbols-outlined" style="font-size: 18px; transform: scale(1.2); font-variation-settings: 'FILL' 1; line-height: 1;">pause_circle</span>
-                </span>
-            }
+            </div>
         </div>
     </div>
 </div>
 
 @code {
-    [Parameter, EditorRequired]
-    public TaskModel Task { get; set; } = null!;
-    
+    [Parameter, EditorRequired] public TaskModel Task { get; set; } = null!;
+
+    [Parameter] public EventCallback<bool> OnTaskReset { get; set; }
+
+    private bool _isResetting = false;
+
+    private async Task ResetTask()
+    {
+        try
+        {
+            _isResetting = true;
+            await InvokeAsync(StateHasChanged);
+
+            var request = new SetResetTaskRequest(Task.Id);
+            var result = await Mediator.Send(request);
+
+            if (result.IsSuccess)
+            {
+                // Notify parent that a task was reset
+                await OnTaskReset.InvokeAsync(true);
+
+                // just notify that the state has changed
+                EditorState.NotifyGlobalStateChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error resetting task: {ex.Message}");
+        }
+        finally
+        {
+            _isResetting = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
     private string GetTaskTypeClass(TaskType type)
     {
         return type switch
@@ -64,4 +120,5 @@
             _ => "bg-blue-100 text-blue-800"
         };
     }
+
 }

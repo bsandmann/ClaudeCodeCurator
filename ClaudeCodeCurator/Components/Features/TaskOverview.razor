@@ -31,7 +31,7 @@
             <div class="space-y-2">
                 @foreach (var task in _tasks)
                 {
-                    <TaskItem Task="task" />
+                    <TaskItem Task="task" OnTaskReset="HandleTaskReset" />
                 }
             </div>
         </div>
@@ -107,6 +107,16 @@
         finally
         {
             _loading = false;
+        }
+    }
+    
+    private async Task HandleTaskReset(bool success)
+    {
+        if (success)
+        {
+            // Reload the task list when a task is reset
+            await LoadApprovedTasks();
+            await InvokeAsync(StateHasChanged);
         }
     }
     

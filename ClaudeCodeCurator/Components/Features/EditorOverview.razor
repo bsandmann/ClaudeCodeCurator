@@ -74,6 +74,11 @@
     {
         // Update the detail visibility based on the EditorState
         _isDetailVisible = EditorState.CurrentMode != EditorState.DetailViewMode.None;
+        
+        // Reload the project data when the global state changes
+        // This ensures the task list in EditorList is refreshed when tasks are reset
+        await LoadLatestProject();
+        
         await InvokeAsync(StateHasChanged);
     }
 

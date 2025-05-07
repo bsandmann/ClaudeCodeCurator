@@ -110,6 +110,15 @@ public class EditorState
         }
     }
     
+    // Public method to notify state changed without changing any state
+    // This is useful when we need to refresh components that depend on state
+    // but the state itself hasn't changed in the EditorState class
+    public void NotifyGlobalStateChanged()
+    {
+        // Start the task but don't wait for it
+        _ = InvokeStateChangedAsync();
+    }
+    
     private async Task InvokeStateChangedAsync()
     {
         if (StateChanged != null)
