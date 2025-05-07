@@ -2513,6 +2513,10 @@ h1, h2, h3, h4, h5, h6 {
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
 
+.accent-stone-500 {
+  accent-color: #78716c;
+}
+
 .shadow-lg {
   --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
@@ -3020,4 +3024,13 @@ h1, h2, h3, h4, h5, h6 {
   --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.focus\:ring-stone-500:focus {
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(120 113 108 / var(--tw-ring-opacity, 1));
+}
+
+.focus\:ring-offset-0:focus {
+  --tw-ring-offset-width: 0px;
 }
