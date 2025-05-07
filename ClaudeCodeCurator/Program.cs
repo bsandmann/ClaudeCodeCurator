@@ -1,3 +1,4 @@
+using System.IO.Pipes;
 using System.Text.Json.Serialization;
 using ClaudeCodeCurator;
 using ClaudeCodeCurator.Commands.CreateProject;
@@ -5,10 +6,12 @@ using ClaudeCodeCurator.Commands.GetProjectByLastUsed;
 using ClaudeCodeCurator.Commands.GetProjectList;
 using ClaudeCodeCurator.Common;
 using ClaudeCodeCurator.Components;
+using ClaudeCodeCurator.McpServer;
 using MediatR;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using ModelContextProtocol;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
@@ -46,6 +49,12 @@ builder.Services.AddLogging(p =>
     p.AddConsole()
 );
 
+builder.Services.AddMcpServer()
+    .WithHttpTransport()
+    .WithTools<CccTool>();
+    // .WithPrompts<GetNextTaskPrompt>();
+    // .WithTools<EchoTool>();
+
 var app = builder.Build();
 
 app.UseForwardedHeaders();
@@ -53,11 +62,13 @@ app.UseForwardedHeaders();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.MapControllers();
+// app.MapControllers();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapMcp();
 
 // Apply migrations and initialize the database
 using (var scope = app.Services.CreateScope())
