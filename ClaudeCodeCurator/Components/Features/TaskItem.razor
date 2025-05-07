@@ -80,8 +80,32 @@
             </div>
         </div>
     </div>
-    <div class="mt-2 text-xs bg-stone-500 text-white p-2 rounded border border-stone-600 whitespace-pre-wrap overflow-auto max-h-48 transition-all overflow-hidden font-mono" style="max-height: @(_isExpanded ? "12rem" : "0"); opacity: @(_isExpanded ? "1" : "0"); margin-top: @(_isExpanded ? "0.5rem" : "0"); padding: @(_isExpanded ? "0.5rem" : "0"); border-width: @(_isExpanded ? "1px" : "0");">
-        @Task.PromptBody
+    <div class="transition-all overflow-hidden" style="max-height: @(_isExpanded ? "20rem" : "0"); opacity: @(_isExpanded ? "1" : "0"); margin-top: @(_isExpanded ? "0.5rem" : "0");">
+        <div class="text-xs bg-stone-500 text-white p-2 rounded border border-stone-600 whitespace-pre-wrap overflow-auto max-h-48 font-mono">
+            @Task.PromptBody
+        </div>
+        
+        @if (_isExpanded && HasPromptFlags)
+        {
+            <div class="mt-1 flex flex-wrap gap-1">
+                @if (Task.ReferenceUserStory)
+                {
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-stone-500 text-white">Reference UserStory</span>
+                }
+                @if (Task.PromptAppendThink)
+                {
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-stone-500 text-white">Think</span>
+                }
+                @if (Task.PromptAppendThinkHard)
+                {
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-stone-500 text-white">Think Hard</span>
+                }
+                @if (Task.PromptAppendDoNotChange)
+                {
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-stone-500 text-white">Do Not Change</span>
+                }
+            </div>
+        }
     </div>
 </div>
 
@@ -221,6 +245,12 @@
         // This will make the icon change smoothly
         return "duration-1000";
     }
+    
+    private bool HasPromptFlags => 
+        Task.ReferenceUserStory || 
+        Task.PromptAppendThink || 
+        Task.PromptAppendThinkHard || 
+        Task.PromptAppendDoNotChange;
     
     private void ToggleExpand()
     {

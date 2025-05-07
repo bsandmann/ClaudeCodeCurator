@@ -85,18 +85,18 @@
             </div>
             
             <div class="mb-3 flex justify-between">
-                <div class="flex gap-2">
+                <div class="flex">
                     <button type="button" 
                             class="@(_model.PromptAppendThink ? "bg-stone-500 text-white" : "bg-stone-100 text-stone-700") 
-                                   px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200
-                                   hover:bg-stone-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                                   px-3 py-1 rounded-l-full text-sm font-medium transition-colors duration-200
+                                   hover:bg-stone-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-stone-400 border-r border-stone-300"
                             @onclick="ToggleThink">
                         Append "Think"
                     </button>
                     
                     <button type="button" 
                             class="@(_model.PromptAppendThinkHard ? "bg-stone-500 text-white" : "bg-stone-100 text-stone-700") 
-                                   px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200
+                                   px-3 py-1 rounded-r-full text-sm font-medium transition-colors duration-200
                                    hover:bg-stone-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-stone-400"
                             @onclick="ToggleThinkHard">
                         Append "Think Hard"
