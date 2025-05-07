@@ -23,8 +23,9 @@ builder.Services.AddControllers()
 builder.Services.AddRazorComponents(o => o.DetailedErrors = builder.Environment.IsDevelopment())
     .AddInteractiveServerComponents();
     
-// Register the EditorState as a singleton to maintain state across the application
+// Register services as singletons to maintain state across the application
 builder.Services.AddSingleton<EditorState>();
+builder.Services.AddSingleton<HumanizedTimeService>();
 
 var appSettingsSection = builder.Configuration.GetSection("AppSettings");
 builder.Services.Configure<AppSettings>(appSettingsSection);

@@ -6,15 +6,19 @@
 @using System.ComponentModel.DataAnnotations
 @inject IMediator Mediator
 @inject EditorState EditorState
+@inject HumanizedTimeService TimeService
 @implements IDisposable
 
 <div class="p-2">
-    <h3 class="text-lg font-semibold mb-2">Edit User Story</h3>
-
     @if (EditorState.SelectedUserStory != null)
     {
-        <div class="text-sm text-gray-500 mb-2">
-            User Story #@EditorState.SelectedUserStory.UserStoryNumber
+        <div class="flex justify-between items-center mb-3">
+            <div class="text-base font-medium text-gray-700">
+                User Story #@EditorState.SelectedUserStory.UserStoryNumber
+            </div>
+            <div class="text-sm text-gray-500">
+                Last updated: @TimeService.GetRelativeTimeText(EditorState.SelectedUserStory.CreatedOrUpdatedUtc)
+            </div>
         </div>
 
         @if (_showDeleteConfirmation)

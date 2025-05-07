@@ -63,6 +63,8 @@ public class SetUserTaskApprovalHandler : IRequestHandler<SetUserTaskApprovalReq
                     if (statusChanged)
                     {
                         task.ApprovedByUserUtc = newValue;
+                        task.RequestedByAiUtc = null;
+                        task.FinishedByAiUtc = null;
                         task.CreatedOrUpdatedUtc = DateTime.UtcNow;
                         hasChanges = true;
                         

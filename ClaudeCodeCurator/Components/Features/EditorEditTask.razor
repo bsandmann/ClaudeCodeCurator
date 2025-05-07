@@ -2,21 +2,26 @@
 @using ClaudeCodeCurator.Commands.UpdateTask
 @using ClaudeCodeCurator.Commands.RemoveTask
 @using ClaudeCodeCurator.Commands.SetUserTaskApproval
+@using ClaudeCodeCurator.Commands.SetResetTask
 @using ClaudeCodeCurator.Entities
 @using ClaudeCodeCurator.Common
 @using MediatR
 @using System.ComponentModel.DataAnnotations
 @inject IMediator Mediator
 @inject EditorState EditorState
+@inject HumanizedTimeService TimeService
 @implements IDisposable
 
 <div class="p-2">
-    <h3 class="text-lg font-semibold mb-2">Edit Task</h3>
-
     @if (EditorState.SelectedTask != null && EditorState.SelectedUserStory != null)
     {
-        <div class="text-sm text-gray-500 mb-2">
-            Task #@EditorState.SelectedTask.TaskNumber for User Story #@EditorState.SelectedUserStory.UserStoryNumber
+        <div class="flex justify-between items-center mb-3">
+            <div class="text-base font-medium text-gray-700">
+                Task #@EditorState.SelectedTask.TaskNumber for User Story #@EditorState.SelectedUserStory.UserStoryNumber
+            </div>
+            <div class="text-sm text-gray-500">
+                @GetStatusTimeText()
+            </div>
         </div>
 
         @if (_showDeleteConfirmation)
@@ -88,16 +93,32 @@
                     </button>
                     @if (IsTaskApproved)
                     {
-                        <button type="button" @onclick="ToggleApprovalStatus" class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-md text-sm" disabled="@(_isTogglingApproval || _isSubmitting)">
-                            @if (_isTogglingApproval)
-                            {
-                                <span>Processing...</span>
-                            }
-                            else
-                            {
-                                <span>Decline</span>
-                            }
-                        </button>
+                        @if (IsAiTask)
+                        {
+                            <button type="button" @onclick="ResetAiTask" class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-md text-sm" disabled="@(_isTogglingApproval || _isSubmitting)">
+                                @if (_isTogglingApproval)
+                                {
+                                    <span>Processing...</span>
+                                }
+                                else
+                                {
+                                    <span>Reset</span>
+                                }
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" @onclick="ToggleApprovalStatus" class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-md text-sm" disabled="@(_isTogglingApproval || _isSubmitting)">
+                                @if (_isTogglingApproval)
+                                {
+                                    <span>Processing...</span>
+                                }
+                                else
+                                {
+                                    <span>Decline</span>
+                                }
+                            </button>
+                        }
                     }
                     else
                     {
@@ -153,6 +174,27 @@
     private string? _errorMessage;
     
     private bool IsTaskApproved => EditorState.SelectedTask?.ApprovedByUserUtc != null;
+    
+    private bool IsAiTask => EditorState.SelectedTask?.RequestedByAiUtc != null || EditorState.SelectedTask?.FinishedByAiUtc != null;
+    
+    private string GetStatusTimeText()
+    {
+        if (EditorState.SelectedTask == null)
+            return string.Empty;
+            
+        // Check in priority order: FinishedByAiUtc > RequestedByAiUtc > ApprovedByUserUtc > CreatedOrUpdatedUtc
+        if (EditorState.SelectedTask.FinishedByAiUtc.HasValue)
+            return $"Finished by AI {TimeService.GetRelativeTimeText(EditorState.SelectedTask.FinishedByAiUtc.Value)}";
+        
+        if (EditorState.SelectedTask.RequestedByAiUtc.HasValue)
+            return $"Requested by AI {TimeService.GetRelativeTimeText(EditorState.SelectedTask.RequestedByAiUtc.Value)}";
+        
+        if (EditorState.SelectedTask.ApprovedByUserUtc.HasValue)
+            return $"Approved {TimeService.GetRelativeTimeText(EditorState.SelectedTask.ApprovedByUserUtc.Value)}";
+        
+        // Default to the last update time
+        return $"Last updated: {TimeService.GetRelativeTimeText(EditorState.SelectedTask.CreatedOrUpdatedUtc)}";
+    }
 
     protected override void OnInitialized()
     {
@@ -384,6 +426,49 @@
             else
             {
                 _errorMessage = updateResult.Errors.FirstOrDefault()?.Message ?? "Failed to save task.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            _isTogglingApproval = false;
+        }
+    }
+    
+    private async Task ResetAiTask()
+    {
+        if (EditorState.SelectedTask == null)
+        {
+            _errorMessage = "No task selected for reset.";
+            return;
+        }
+
+        try
+        {
+            _isTogglingApproval = true;
+            _errorMessage = null;
+
+            var request = new SetResetTaskRequest(
+                EditorState.SelectedTask.Id,
+                null // Let the handler determine the project ID from the UserStory
+            );
+            
+            var result = await Mediator.Send(request);
+
+            if (result.IsSuccess)
+            {
+                // Notify parent component that a task was updated
+                await OnTaskUpdated.InvokeAsync(true);
+                
+                // Clear editor state to close this form
+                EditorState.ClearDetailView();
+            }
+            else
+            {
+                _errorMessage = result.Errors.FirstOrDefault()?.Message ?? "Failed to reset task.";
             }
         }
         catch (Exception ex)
