@@ -1,8 +1,24 @@
 @using ClaudeCodeCurator.Common
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
 
 <div class="bg-stone-800 text-white p-2 shadow-md">
-    <div class="mx-auto flex items-center">
-        <div class="text-lg font-roboto-slab font-semibold">Claude Code Curator</div>
-        <div class="ml-2 text-xs text-stone-400 mt-2">v@(AppSettings.Version)</div>
+    <div class="mx-auto flex items-center justify-between">
+        <div class="flex items-center">
+            <div class="text-lg font-roboto-slab font-semibold">Claude Code Curator</div>
+            <div class="ml-2 text-xs text-stone-400 mt-2">v@(AppSettings.Version)</div>
+        </div>
+        <div class="text-xs text-stone-400">
+            @GetMcpUrl()
+        </div>
     </div>
 </div>
+
+@code {
+    private string GetMcpUrl()
+    {
+        var baseUrl = NavigationManager.BaseUri.TrimEnd('/');
+        return $"{baseUrl}/mcp/sse";
+    }
+}

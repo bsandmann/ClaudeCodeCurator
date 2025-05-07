@@ -10,9 +10,10 @@
 @inject EditorState EditorState
 @implements IDisposable
 
-<div class="h-full border-l border-stone-200 p-4 flex flex-col">
-    <h2 class="text-xl font-semibold mb-4">Task Overview</h2>
+<div class="h-full border-l border-stone-200 flex flex-col">
+    <TaskOverviewHeader OnRefresh="RefreshTaskList" LastReloaded="_lastReloaded" IsRefreshing="_loading" />
     
+    <div class="p-4 flex-grow overflow-hidden flex flex-col">
     @if (_loading)
     {
         <div class="flex justify-center items-center h-24">
@@ -84,6 +85,7 @@
             No approved tasks found.
         </div>
     }
+    </div>
 </div>
 
 @code {
@@ -93,11 +95,21 @@
     private bool _loading = true;
     private string? _errorMessage;
     private List<TaskModel>? _tasks;
+    private DateTime? _lastReloaded;
+    
+    // Auto-refresh timer
+    private System.Threading.Timer? _autoRefreshTimer;
     
     protected override async Task OnInitializedAsync()
     {
         // Subscribe to state changes to detect when a task is approved/declined
         EditorState.StateChanged += OnStateChanged;
+        
+        // Set up auto-refresh timer to reload tasks every 10 seconds
+        _autoRefreshTimer = new System.Threading.Timer(async _ =>
+        {
+            await AutoRefreshTasks();
+        }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
         
         await LoadApprovedTasks();
     }
@@ -115,6 +127,34 @@
     {
         // Unsubscribe from state changes when component is disposed
         EditorState.StateChanged -= OnStateChanged;
+        
+        // Dispose the auto-refresh timer
+        _autoRefreshTimer?.Dispose();
+    }
+    
+    // Method for auto-refreshing tasks on a timer
+    private async Task AutoRefreshTasks()
+    {
+        try
+        {
+            // Only refresh if we're not already loading and we have a project
+            if (!_loading && Project != null)
+            {
+                await InvokeAsync(async () =>
+                {
+                    // Update the timestamp even if no data changes
+                    // This helps users know data is being refreshed even if nothing changes
+                    _lastReloaded = DateTime.UtcNow;
+                    
+                    await LoadApprovedTasks();
+                    await InvokeAsync(StateHasChanged);
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in auto-refresh: {ex.Message}");
+        }
     }
     
     private async Task OnStateChanged()
@@ -145,6 +185,7 @@
             if (tasksResult.IsSuccess)
             {
                 _tasks = tasksResult.Value;
+                _lastReloaded = DateTime.UtcNow;
             }
             else
             {
@@ -180,6 +221,18 @@
             await LoadApprovedTasks();
             await InvokeAsync(StateHasChanged);
         }
+    }
+    
+    /// <summary>
+    /// Method called when user clicks the refresh button in the header
+    /// </summary>
+    private async Task RefreshTaskList()
+    {
+        // Update the timestamp when manually refreshing
+        _lastReloaded = DateTime.UtcNow;
+        
+        await LoadApprovedTasks();
+        await InvokeAsync(StateHasChanged);
     }
     
     // Methods for moving tasks up and down in the list

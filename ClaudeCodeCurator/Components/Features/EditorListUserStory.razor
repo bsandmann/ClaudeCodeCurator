@@ -53,7 +53,13 @@
     {
         base.OnInitialized();
         
-        // Auto-expand the selected user story if it has the selected task
+        // Expand all user stories by default
+        if (UserStory.Tasks.Any())
+        {
+            EditorState.ExpandUserStory(UserStory.Id);
+        }
+        
+        // Additionally, auto-expand the selected user story if it has the selected task
         if (EditorState.SelectedUserStory?.Id == UserStory.Id && 
             EditorState.SelectedTask != null && 
             UserStory.Tasks.Any(t => t.Id == EditorState.SelectedTask.Id))

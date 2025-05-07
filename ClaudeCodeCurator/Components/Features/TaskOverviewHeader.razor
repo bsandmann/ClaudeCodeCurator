@@ -1,0 +1,69 @@
+@namespace ClaudeCodeCurator.Components.Features
+@using ClaudeCodeCurator.Common
+@inject HumanizedTimeService HumanizedTimeService
+@implements IDisposable
+
+<div class="flex items-center justify-between bg-stone-100 p-2">
+    <div class="flex-grow">
+        <h3 class="text-lg font-semibold text-stone-800">Agent Tasks</h3>
+    </div>
+    <div class="flex items-center space-x-2">
+        @if (LastReloaded.HasValue)
+        {
+            <span class="text-xs text-stone-500">
+                @if (IsRefreshing)
+                {
+                    <span class="animate-pulse">Refreshing...</span>
+                }
+                else
+                {
+                    <span>Updated @GetHumanizedTime(LastReloaded.Value)</span>
+                }
+            </span>
+        }
+        <button @onclick="OnRefreshClick" 
+                class="text-stone-500 hover:text-stone-600 hover:bg-stone-200 bg-white rounded-full h-6 w-6 flex items-center justify-center transition-colors" 
+                title="Refresh tasks">
+            <span class="material-symbols-outlined @(IsRefreshing ? "animate-spin" : "")" style="font-size: 18px;">refresh</span>
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnRefresh { get; set; }
+    
+    [Parameter]
+    public DateTime? LastReloaded { get; set; }
+    
+    [Parameter]
+    public bool IsRefreshing { get; set; }
+    
+    // Timer to update the displayed time every 10 seconds
+    private System.Threading.Timer? _updateTimer;
+
+    protected override void OnInitialized()
+    {
+        // Set up timer to update the displayed time every 10 seconds
+        _updateTimer = new System.Threading.Timer(_ =>
+        {
+            // Request UI update to refresh the displayed time
+            InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+    }
+    
+    public void Dispose()
+    {
+        _updateTimer?.Dispose();
+    }
+
+    private async Task OnRefreshClick()
+    {
+        await OnRefresh.InvokeAsync();
+    }
+    
+    private string GetHumanizedTime(DateTime dateTime)
+    {
+        return HumanizedTimeService.GetRelativeTimeText(dateTime);
+    }
+}

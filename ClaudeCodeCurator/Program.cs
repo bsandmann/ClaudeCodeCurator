@@ -26,6 +26,7 @@ builder.Services.AddRazorComponents(o => o.DetailedErrors = builder.Environment.
 // Register services as singletons to maintain state across the application
 builder.Services.AddSingleton<EditorState>();
 builder.Services.AddSingleton<HumanizedTimeService>();
+builder.Services.AddHttpContextAccessor();
 
 var appSettingsSection = builder.Configuration.GetSection("AppSettings");
 builder.Services.Configure<AppSettings>(appSettingsSection);
@@ -53,8 +54,6 @@ builder.Services.AddLogging(p =>
 builder.Services.AddMcpServer()
     .WithHttpTransport()
     .WithTools<CccTool>();
-    // .WithPrompts<GetNextTaskPrompt>();
-    // .WithTools<EchoTool>();
 
 var app = builder.Build();
 
@@ -69,7 +68,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.MapMcp();
+app.MapMcp("/mcp");
 
 // Apply migrations and initialize the database
 using (var scope = app.Services.CreateScope())
