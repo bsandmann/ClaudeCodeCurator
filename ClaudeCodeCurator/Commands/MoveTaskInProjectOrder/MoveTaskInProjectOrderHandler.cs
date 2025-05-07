@@ -24,246 +24,237 @@ public class MoveTaskInProjectOrderHandler : IRequestHandler<MoveTaskInProjectOr
 
         try
         {
-            // Start a transaction to ensure consistency
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+            // Check if the task exists and is in the ordered list
+            var orderedTask = await context.ProjectTaskOrders
+                .AsTracking()
+                .FirstOrDefaultAsync(o => 
+                    o.ProjectId == request.ProjectId && 
+                    o.TaskId == request.TaskId, 
+                    cancellationToken);
             
-            try
+            if (orderedTask == null)
             {
-                // Check if the task exists and is in the ordered list
-                var orderedTask = await context.ProjectTaskOrders
-                    .AsTracking()
-                    .FirstOrDefaultAsync(o => 
-                        o.ProjectId == request.ProjectId && 
-                        o.TaskId == request.TaskId, 
-                        cancellationToken);
-                
-                if (orderedTask == null)
-                {
-                    return Result.Fail($"Task with ID '{request.TaskId}' is not in the ordered list for project '{request.ProjectId}'");
-                }
-                
-                // Handle different position types
-                switch (request.PositionType)
-                {
-                    case PositionType.ToTop:
-                        // Get minimum position and place task above it
-                        var minPosition = await context.ProjectTaskOrders
-                            .Where(o => o.ProjectId == request.ProjectId && o.TaskId != request.TaskId)
-                            .MinAsync(o => o.Position, cancellationToken);
-                        
-                        orderedTask.Position = minPosition > 100 ? minPosition - 100 : 1;
-                        break;
-                        
-                    case PositionType.ToBottom:
-                        // Get maximum position and place task below it
-                        var maxPosition = await context.ProjectTaskOrders
-                            .Where(o => o.ProjectId == request.ProjectId && o.TaskId != request.TaskId)
-                            .MaxAsync(o => o.Position, cancellationToken);
-                        
-                        orderedTask.Position = maxPosition + 100;
-                        break;
-                        
-                    case PositionType.BeforeTask:
-                        if (!request.ReferenceTaskId.HasValue)
-                        {
-                            return Result.Fail("Reference task ID is required when using BeforeTask position type");
-                        }
-                        
-                        // Get reference task
-                        var beforeTask = await context.ProjectTaskOrders
-                            .FirstOrDefaultAsync(o => 
-                                o.ProjectId == request.ProjectId && 
-                                o.TaskId == request.ReferenceTaskId.Value, 
-                                cancellationToken);
-                                
-                        if (beforeTask == null)
-                        {
-                            return Result.Fail($"Reference task with ID '{request.ReferenceTaskId}' not found in the ordered list");
-                        }
-                        
-                        // Find task right before the reference task
-                        var taskBeforeReference = await context.ProjectTaskOrders
-                            .Where(o => 
-                                o.ProjectId == request.ProjectId && 
-                                o.Position < beforeTask.Position &&
-                                o.TaskId != request.TaskId)
-                            .OrderByDescending(o => o.Position)
-                            .FirstOrDefaultAsync(cancellationToken);
-                        
-                        int newPosition;
-                        if (taskBeforeReference != null)
-                        {
-                            // Place in between
-                            newPosition = taskBeforeReference.Position + (beforeTask.Position - taskBeforeReference.Position) / 2;
+                return Result.Fail($"Task with ID '{request.TaskId}' is not in the ordered list for project '{request.ProjectId}'");
+            }
+            
+            // Handle different position types
+            switch (request.PositionType)
+            {
+                case PositionType.ToTop:
+                    // Get minimum position and place task above it
+                    var minPosition = await context.ProjectTaskOrders
+                        .Where(o => o.ProjectId == request.ProjectId && o.TaskId != request.TaskId)
+                        .MinAsync(o => o.Position, cancellationToken);
+                    
+                    orderedTask.Position = minPosition > 100 ? minPosition - 100 : 1;
+                    break;
+                    
+                case PositionType.ToBottom:
+                    // Get maximum position and place task below it
+                    var maxPosition = await context.ProjectTaskOrders
+                        .Where(o => o.ProjectId == request.ProjectId && o.TaskId != request.TaskId)
+                        .MaxAsync(o => o.Position, cancellationToken);
+                    
+                    orderedTask.Position = maxPosition + 100;
+                    break;
+                    
+                case PositionType.BeforeTask:
+                    if (!request.ReferenceTaskId.HasValue)
+                    {
+                        return Result.Fail("Reference task ID is required when using BeforeTask position type");
+                    }
+                    
+                    // Get reference task
+                    var beforeTask = await context.ProjectTaskOrders
+                        .FirstOrDefaultAsync(o => 
+                            o.ProjectId == request.ProjectId && 
+                            o.TaskId == request.ReferenceTaskId.Value, 
+                            cancellationToken);
                             
-                            // If no space between, need to reorganize
-                            if (newPosition == taskBeforeReference.Position)
+                    if (beforeTask == null)
+                    {
+                        return Result.Fail($"Reference task with ID '{request.ReferenceTaskId}' not found in the ordered list");
+                    }
+                    
+                    // Find task right before the reference task
+                    var taskBeforeReference = await context.ProjectTaskOrders
+                        .Where(o => 
+                            o.ProjectId == request.ProjectId && 
+                            o.Position < beforeTask.Position &&
+                            o.TaskId != request.TaskId)
+                        .OrderByDescending(o => o.Position)
+                        .FirstOrDefaultAsync(cancellationToken);
+                    
+                    int newPosition;
+                    if (taskBeforeReference != null)
+                    {
+                        // Place in between
+                        newPosition = taskBeforeReference.Position + (beforeTask.Position - taskBeforeReference.Position) / 2;
+                        
+                        // If no space between, need to reorganize
+                        if (newPosition == taskBeforeReference.Position)
+                        {
+                            await ReorganizePositionsAsync(context, request.ProjectId, cancellationToken);
+                            await context.SaveChangesAsync(cancellationToken);
+                            
+                            // Refresh positions after reorganization
+                            beforeTask = await context.ProjectTaskOrders
+                                .FirstAsync(o => 
+                                    o.ProjectId == request.ProjectId && 
+                                    o.TaskId == request.ReferenceTaskId.Value, 
+                                    cancellationToken);
+                            
+                            taskBeforeReference = await context.ProjectTaskOrders
+                                .Where(o => 
+                                    o.ProjectId == request.ProjectId && 
+                                    o.Position < beforeTask.Position &&
+                                    o.TaskId != request.TaskId)
+                                .OrderByDescending(o => o.Position)
+                                .FirstOrDefaultAsync(cancellationToken);
+                            
+                            if (taskBeforeReference != null)
                             {
-                                await ReorganizePositionsAsync(context, request.ProjectId, cancellationToken);
-                                
-                                // Refresh positions after reorganization
-                                beforeTask = await context.ProjectTaskOrders
-                                    .FirstAsync(o => 
-                                        o.ProjectId == request.ProjectId && 
-                                        o.TaskId == request.ReferenceTaskId.Value, 
-                                        cancellationToken);
-                                
-                                taskBeforeReference = await context.ProjectTaskOrders
-                                    .Where(o => 
-                                        o.ProjectId == request.ProjectId && 
-                                        o.Position < beforeTask.Position &&
-                                        o.TaskId != request.TaskId)
-                                    .OrderByDescending(o => o.Position)
-                                    .FirstOrDefaultAsync(cancellationToken);
-                                
-                                if (taskBeforeReference != null)
-                                {
-                                    newPosition = taskBeforeReference.Position + (beforeTask.Position - taskBeforeReference.Position) / 2;
-                                }
-                                else
-                                {
-                                    newPosition = beforeTask.Position - 100;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // No task before reference, place at beginning
-                            newPosition = beforeTask.Position > 100 ? beforeTask.Position - 100 : 1;
-                        }
-                        
-                        orderedTask.Position = newPosition;
-                        break;
-                        
-                    case PositionType.AfterTask:
-                        if (!request.ReferenceTaskId.HasValue)
-                        {
-                            return Result.Fail("Reference task ID is required when using AfterTask position type");
-                        }
-                        
-                        // Get reference task
-                        var afterTask = await context.ProjectTaskOrders
-                            .FirstOrDefaultAsync(o => 
-                                o.ProjectId == request.ProjectId && 
-                                o.TaskId == request.ReferenceTaskId.Value, 
-                                cancellationToken);
-                                
-                        if (afterTask == null)
-                        {
-                            return Result.Fail($"Reference task with ID '{request.ReferenceTaskId}' not found in the ordered list");
-                        }
-                        
-                        // Find task right after the reference task
-                        var taskAfterReference = await context.ProjectTaskOrders
-                            .Where(o => 
-                                o.ProjectId == request.ProjectId && 
-                                o.Position > afterTask.Position &&
-                                o.TaskId != request.TaskId)
-                            .OrderBy(o => o.Position)
-                            .FirstOrDefaultAsync(cancellationToken);
-                        
-                        if (taskAfterReference != null)
-                        {
-                            // Place in between
-                            int midPosition = afterTask.Position + (taskAfterReference.Position - afterTask.Position) / 2;
-                            
-                            // If no space between, need to reorganize
-                            if (midPosition == afterTask.Position)
-                            {
-                                await ReorganizePositionsAsync(context, request.ProjectId, cancellationToken);
-                                
-                                // Refresh positions after reorganization
-                                afterTask = await context.ProjectTaskOrders
-                                    .FirstAsync(o => 
-                                        o.ProjectId == request.ProjectId && 
-                                        o.TaskId == request.ReferenceTaskId.Value, 
-                                        cancellationToken);
-                                
-                                taskAfterReference = await context.ProjectTaskOrders
-                                    .Where(o => 
-                                        o.ProjectId == request.ProjectId && 
-                                        o.Position > afterTask.Position &&
-                                        o.TaskId != request.TaskId)
-                                    .OrderBy(o => o.Position)
-                                    .FirstOrDefaultAsync(cancellationToken);
-                                
-                                if (taskAfterReference != null)
-                                {
-                                    midPosition = afterTask.Position + (taskAfterReference.Position - afterTask.Position) / 2;
-                                }
-                                else
-                                {
-                                    midPosition = afterTask.Position + 100;
-                                }
-                            }
-                            
-                            orderedTask.Position = midPosition;
-                        }
-                        else
-                        {
-                            // No task after reference, place at end
-                            orderedTask.Position = afterTask.Position + 100;
-                        }
-                        break;
-                        
-                    case PositionType.ToPosition:
-                        if (!request.Position.HasValue)
-                        {
-                            return Result.Fail("Position value is required when using ToPosition position type");
-                        }
-                        
-                        // Check if position is already taken
-                        var existingTaskAtPosition = await context.ProjectTaskOrders
-                            .FirstOrDefaultAsync(o => 
-                                o.ProjectId == request.ProjectId && 
-                                o.Position == request.Position.Value &&
-                                o.TaskId != request.TaskId, 
-                                cancellationToken);
-                        
-                        if (existingTaskAtPosition != null)
-                        {
-                            // Need to reorganize to make room
-                            bool shiftUp = orderedTask.Position < request.Position.Value;
-                            
-                            if (shiftUp)
-                            {
-                                // Shift tasks up that are between old and new position
-                                await context.ProjectTaskOrders
-                                    .Where(o => 
-                                        o.ProjectId == request.ProjectId && 
-                                        o.Position >= request.Position.Value &&
-                                        o.TaskId != request.TaskId)
-                                    .ForEachAsync(o => o.Position += 100, cancellationToken);
+                                newPosition = taskBeforeReference.Position + (beforeTask.Position - taskBeforeReference.Position) / 2;
                             }
                             else
                             {
-                                // Shift tasks down that are between new and old position
-                                await context.ProjectTaskOrders
-                                    .Where(o => 
-                                        o.ProjectId == request.ProjectId && 
-                                        o.Position <= request.Position.Value &&
-                                        o.Position > orderedTask.Position &&
-                                        o.TaskId != request.TaskId)
-                                    .ForEachAsync(o => o.Position -= 100, cancellationToken);
+                                newPosition = beforeTask.Position - 100;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // No task before reference, place at beginning
+                        newPosition = beforeTask.Position > 100 ? beforeTask.Position - 100 : 1;
+                    }
+                    
+                    orderedTask.Position = newPosition;
+                    break;
+                    
+                case PositionType.AfterTask:
+                    if (!request.ReferenceTaskId.HasValue)
+                    {
+                        return Result.Fail("Reference task ID is required when using AfterTask position type");
+                    }
+                    
+                    // Get reference task
+                    var afterTask = await context.ProjectTaskOrders
+                        .FirstOrDefaultAsync(o => 
+                            o.ProjectId == request.ProjectId && 
+                            o.TaskId == request.ReferenceTaskId.Value, 
+                            cancellationToken);
+                            
+                    if (afterTask == null)
+                    {
+                        return Result.Fail($"Reference task with ID '{request.ReferenceTaskId}' not found in the ordered list");
+                    }
+                    
+                    // Find task right after the reference task
+                    var taskAfterReference = await context.ProjectTaskOrders
+                        .Where(o => 
+                            o.ProjectId == request.ProjectId && 
+                            o.Position > afterTask.Position &&
+                            o.TaskId != request.TaskId)
+                        .OrderBy(o => o.Position)
+                        .FirstOrDefaultAsync(cancellationToken);
+                    
+                    if (taskAfterReference != null)
+                    {
+                        // Place in between
+                        int midPosition = afterTask.Position + (taskAfterReference.Position - afterTask.Position) / 2;
+                        
+                        // If no space between, need to reorganize
+                        if (midPosition == afterTask.Position)
+                        {
+                            await ReorganizePositionsAsync(context, request.ProjectId, cancellationToken);
+                            await context.SaveChangesAsync(cancellationToken);
+                            
+                            // Refresh positions after reorganization
+                            afterTask = await context.ProjectTaskOrders
+                                .FirstAsync(o => 
+                                    o.ProjectId == request.ProjectId && 
+                                    o.TaskId == request.ReferenceTaskId.Value, 
+                                    cancellationToken);
+                            
+                            taskAfterReference = await context.ProjectTaskOrders
+                                .Where(o => 
+                                    o.ProjectId == request.ProjectId && 
+                                    o.Position > afterTask.Position &&
+                                    o.TaskId != request.TaskId)
+                                .OrderBy(o => o.Position)
+                                .FirstOrDefaultAsync(cancellationToken);
+                            
+                            if (taskAfterReference != null)
+                            {
+                                midPosition = afterTask.Position + (taskAfterReference.Position - afterTask.Position) / 2;
+                            }
+                            else
+                            {
+                                midPosition = afterTask.Position + 100;
                             }
                         }
                         
-                        orderedTask.Position = request.Position.Value;
-                        break;
+                        orderedTask.Position = midPosition;
+                    }
+                    else
+                    {
+                        // No task after reference, place at end
+                        orderedTask.Position = afterTask.Position + 100;
+                    }
+                    break;
+                    
+                case PositionType.ToPosition:
+                    if (!request.Position.HasValue)
+                    {
+                        return Result.Fail("Position value is required when using ToPosition position type");
+                    }
+                    
+                    // Check if position is already taken
+                    var existingTaskAtPosition = await context.ProjectTaskOrders
+                        .FirstOrDefaultAsync(o => 
+                            o.ProjectId == request.ProjectId && 
+                            o.Position == request.Position.Value &&
+                            o.TaskId != request.TaskId, 
+                            cancellationToken);
+                    
+                    if (existingTaskAtPosition != null)
+                    {
+                        // Need to reorganize to make room
+                        bool shiftUp = orderedTask.Position < request.Position.Value;
                         
-                    default:
-                        return Result.Fail("Invalid position type specified");
-                }
-                
-                await context.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-                return Result.Ok(true);
+                        if (shiftUp)
+                        {
+                            // Shift tasks up that are between old and new position
+                            await context.ProjectTaskOrders
+                                .Where(o => 
+                                    o.ProjectId == request.ProjectId && 
+                                    o.Position >= request.Position.Value &&
+                                    o.TaskId != request.TaskId)
+                                .ForEachAsync(o => o.Position += 100, cancellationToken);
+                        }
+                        else
+                        {
+                            // Shift tasks down that are between new and old position
+                            await context.ProjectTaskOrders
+                                .Where(o => 
+                                    o.ProjectId == request.ProjectId && 
+                                    o.Position <= request.Position.Value &&
+                                    o.Position > orderedTask.Position &&
+                                    o.TaskId != request.TaskId)
+                                .ForEachAsync(o => o.Position -= 100, cancellationToken);
+                        }
+                    }
+                    
+                    orderedTask.Position = request.Position.Value;
+                    break;
+                    
+                default:
+                    return Result.Fail("Invalid position type specified");
             }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync(cancellationToken);
-                throw; // Re-throw to be caught by outer try-catch
-            }
+            
+            // Save changes to the database
+            await context.SaveChangesAsync(cancellationToken);
+            return Result.Ok(true);
         }
         catch (Exception ex)
         {
