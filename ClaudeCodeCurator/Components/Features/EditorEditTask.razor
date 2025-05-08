@@ -71,13 +71,33 @@
             <div class="mb-3">
                 <div class="flex justify-between items-center mb-1">
                     <label for="promptBody" class="block text-sm font-medium text-stone-700">Prompt</label>
-                    <button type="button" 
-                            class="@(_model.ReferenceUserStory ? "bg-stone-500 text-white" : "bg-stone-100 text-stone-700") 
-                                   px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200
-                                   hover:bg-stone-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-stone-400"
-                            @onclick="() => _model.ReferenceUserStory = !_model.ReferenceUserStory">
-                        Reference UserStory
-                    </button>
+                    <div class="flex space-x-2">
+                        <div class="flex">
+                            <button type="button" 
+                                    class="@(_model.UsePrimePrompt ? "bg-stone-500 text-white" : "bg-stone-100 text-stone-700") 
+                                           px-3 py-1 rounded-l-full text-sm font-medium transition-colors duration-200
+                                           hover:bg-stone-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-stone-400 border-r border-stone-300"
+                                    @onclick="TogglePrimePrompt">
+                                Prime
+                            </button>
+                            
+                            <button type="button" 
+                                    class="@(_model.UseVerifyPrompt ? "bg-stone-500 text-white" : "bg-stone-100 text-stone-700") 
+                                           px-3 py-1 rounded-r-full text-sm font-medium transition-colors duration-200
+                                           hover:bg-stone-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                                    @onclick="ToggleVerifyPrompt">
+                                Verify
+                            </button>
+                        </div>
+                        
+                        <button type="button" 
+                                class="@(_model.ReferenceUserStory ? "bg-stone-500 text-white" : "bg-stone-100 text-stone-700") 
+                                       px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200
+                                       hover:bg-stone-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                                @onclick="() => _model.ReferenceUserStory = !_model.ReferenceUserStory">
+                            Reference UserStory
+                        </button>
+                    </div>
                 </div>
                 <InputTextArea id="promptBody" @bind-Value="_model.PromptBody" class="w-full p-2 border rounded-md h-36 bg-stone-500 text-white font-mono text-sm" 
                                placeholder="Enter task prompt" />
@@ -102,6 +122,7 @@
                         Append "Think Hard"
                     </button>
                 </div>
+                
                 
                 <button type="button" 
                         class="@(_model.PromptAppendDoNotChange ? "bg-stone-500 text-white" : "bg-stone-100 text-stone-700") 
@@ -208,6 +229,8 @@
         public bool PromptAppendThink { get; set; } = false;
         public bool PromptAppendThinkHard { get; set; } = false;
         public bool PromptAppendDoNotChange { get; set; } = false;
+        public bool UsePrimePrompt { get; set; } = false;
+        public bool UseVerifyPrompt { get; set; } = false;
     }
 
     private TaskFormModel _model = new();
@@ -273,6 +296,8 @@
             _model.PromptAppendThink = EditorState.SelectedTask.PromptAppendThink;
             _model.PromptAppendThinkHard = EditorState.SelectedTask.PromptAppendThinkHard;
             _model.PromptAppendDoNotChange = EditorState.SelectedTask.PromptAppendDoNotChange;
+            _model.UsePrimePrompt = EditorState.SelectedTask.UsePrimePrompt;
+            _model.UseVerifyPrompt = EditorState.SelectedTask.UseVerifyPrompt;
         }
     }
 
@@ -297,7 +322,9 @@
                 _model.ReferenceUserStory,
                 _model.PromptAppendThink,
                 _model.PromptAppendThinkHard,
-                _model.PromptAppendDoNotChange
+                _model.PromptAppendDoNotChange,
+                _model.UsePrimePrompt,
+                _model.UseVerifyPrompt
             );
 
             var result = await Mediator.Send(request);
@@ -450,7 +477,9 @@
                 _model.ReferenceUserStory,
                 _model.PromptAppendThink,
                 _model.PromptAppendThinkHard,
-                _model.PromptAppendDoNotChange
+                _model.PromptAppendDoNotChange,
+                _model.UsePrimePrompt,
+                _model.UseVerifyPrompt
             );
             
             var updateResult = await Mediator.Send(updateRequest);
@@ -517,6 +546,32 @@
         {
             _model.PromptAppendThinkHard = true;
             _model.PromptAppendThink = false;
+        }
+    }
+    
+    private void TogglePrimePrompt()
+    {
+        if (_model.UsePrimePrompt)
+        {
+            _model.UsePrimePrompt = false;
+        }
+        else
+        {
+            _model.UsePrimePrompt = true;
+            _model.UseVerifyPrompt = false;
+        }
+    }
+    
+    private void ToggleVerifyPrompt()
+    {
+        if (_model.UseVerifyPrompt)
+        {
+            _model.UseVerifyPrompt = false;
+        }
+        else
+        {
+            _model.UseVerifyPrompt = true;
+            _model.UsePrimePrompt = false;
         }
     }
     
