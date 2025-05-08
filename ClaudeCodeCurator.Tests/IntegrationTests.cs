@@ -38,6 +38,7 @@ public partial class IntegrationTests : IDisposable
     private readonly Mock<IServiceScopeFactory> _serviceScopeFactoryMock;
     private readonly Mock<IServiceScope> _serviceScopeMock;
     private readonly IServiceProvider _serviceProviderMock;
+    private readonly EditorState _editorState;
     private readonly CreateProjectHandler _createProjectHandler;
     private readonly UpdateProjectHandler _updateProjectHandler;
     private readonly CreateUserStoryHandler _createUserStoryHandler;
@@ -70,7 +71,7 @@ public partial class IntegrationTests : IDisposable
         // Set up mocks
         this._mediatorMock = new Mock<IMediator>();
         this._mockedCache = LazyCache.Testing.Moq.Create.MockedCachingService();
-
+        this._editorState = new EditorState();
 
         // Setup a service collection and service provider for DI testing
         var services = new ServiceCollection();
@@ -80,9 +81,10 @@ public partial class IntegrationTests : IDisposable
             
         _serviceProvider = services.BuildServiceProvider();
             
-        // Create a mock service provider that returns the test context
+        // Create a mock service provider that returns the test context and EditorState
         _serviceProviderMock = Mock.Of<IServiceProvider>(sp => 
-            sp.GetService(typeof(DataContext)) == _context);
+            sp.GetService(typeof(DataContext)) == _context && 
+            sp.GetService(typeof(EditorState)) == _editorState);
             
         // Create a mock service scope that returns our mocked service provider
         _serviceScopeMock = new Mock<IServiceScope>();
@@ -110,8 +112,8 @@ public partial class IntegrationTests : IDisposable
         this._removeUserStoryHandler = new RemoveUserStoryHandler(_serviceScopeFactoryMock.Object);
         this._removeProjectHandler = new RemoveProjectHandler(_serviceScopeFactoryMock.Object);
         this._setUserTaskApprovalHandler = new SetUserTaskApprovalHandler(_serviceScopeFactoryMock.Object);
-        this._setAiTaskRequestStateHandler = new SetAiTaskRequestStateHandler(_serviceScopeFactoryMock.Object);
-        this._setAiTaskFinishStateHandler = new SetAiTaskFinishStateHandler(_serviceScopeFactoryMock.Object);
+        this._setAiTaskRequestStateHandler = new SetAiTaskRequestStateHandler(_serviceScopeFactoryMock.Object, _editorState);
+        this._setAiTaskFinishStateHandler = new SetAiTaskFinishStateHandler(_serviceScopeFactoryMock.Object, _editorState);
         this._moveTaskInProjectOrderHandler = new MoveTaskInProjectOrderHandler(_serviceScopeFactoryMock.Object);
 
         // Initialize handlers with the mocked service scope factory

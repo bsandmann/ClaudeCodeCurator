@@ -6,14 +6,17 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using ClaudeCodeCurator.Common;
 
 public class SetAiTaskFinishStateHandler : IRequestHandler<SetAiTaskFinishStateRequest, Result<bool>>
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly EditorState _editorState;
 
-    public SetAiTaskFinishStateHandler(IServiceScopeFactory serviceScopeFactory)
+    public SetAiTaskFinishStateHandler(IServiceScopeFactory serviceScopeFactory, EditorState editorState)
     {
         _serviceScopeFactory = serviceScopeFactory;
+        _editorState = editorState;
     }
 
     public async Task<Result<bool>> Handle(SetAiTaskFinishStateRequest request, CancellationToken cancellationToken)
@@ -57,6 +60,10 @@ public class SetAiTaskFinishStateHandler : IRequestHandler<SetAiTaskFinishStateR
             if (hasChanges)
             {
                 await context.SaveChangesAsync(cancellationToken);
+                
+                // Notify UI components that state has changed
+                _editorState.NotifyGlobalStateChanged();
+                
                 return Result.Ok(true);
             }
             

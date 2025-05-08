@@ -265,8 +265,8 @@ public partial class IntegrationTests
         var taskModelType = typeof(TaskModel);
         var properties = taskModelType.GetProperties();
         
-        // Should contain the 13 expected properties with ReferenceUserStory added
-        Assert.Equal(13, properties.Length);
+        // The TaskModel has 16 properties
+        Assert.Equal(16, properties.Length);
         
         // Check that there are no navigation properties to other entities
         var propertyNames = properties.Select(p => p.Name).ToList();
@@ -282,6 +282,10 @@ public partial class IntegrationTests
         Assert.Contains("RequestedByAiUtc", propertyNames);
         Assert.Contains("FinishedByAiUtc", propertyNames);
         Assert.Contains("CreatedOrUpdatedUtc", propertyNames);
+        Assert.Contains("PromptAppendThink", propertyNames);
+        Assert.Contains("PromptAppendThinkHard", propertyNames);
+        Assert.Contains("PromptAppendDoNotChange", propertyNames);
+        Assert.Contains("UserStoryNumber", propertyNames);
         
         // Ensure there are no "UserStory" navigation properties
         Assert.DoesNotContain("UserStory", propertyNames);
