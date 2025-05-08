@@ -545,4 +545,91 @@ public partial class IntegrationTests
         Assert.Equal(3, userStory2Task1Model.TaskNumber);
         Assert.Equal(4, userStory2Task2Model.TaskNumber);
     }
+    
+    [Fact]
+    public async Task GetTaskById_Returns_Task_With_PrimePrompt_And_VerifyPrompt_Flags()
+    {
+        // Arrange - Create project, user story
+        var projectName = "Test Project for Prime and Verify Flags";
+        var createProjectRequest = new CreateProjectRequest(projectName);
+        var createProjectResult = await _createProjectHandler.Handle(createProjectRequest, CancellationToken.None);
+        
+        Assert.True(createProjectResult.IsSuccess);
+        var projectId = createProjectResult.Value;
+        
+        var userStoryName = "User Story for Prime and Verify Flags";
+        var createUserStoryRequest = new CreateUserStoryRequest(userStoryName, projectId);
+        var createUserStoryResult = await _createUserStoryHandler.Handle(createUserStoryRequest, CancellationToken.None);
+        
+        Assert.True(createUserStoryResult.IsSuccess);
+        var userStoryId = createUserStoryResult.Value;
+        
+        // Create a task with UsePrimePrompt flag set
+        var taskNamePrime = "Prime Task";
+        var promptBodyPrime = "This is a test prime prompt";
+        var createTaskPrimeRequest = new CreateTaskRequest(
+            taskNamePrime, 
+            promptBodyPrime, 
+            userStoryId, 
+            TaskType.Task,
+            false,  // ReferenceUserStory
+            false,  // PromptAppendThink
+            false,  // PromptAppendThinkHard
+            false,  // PromptAppendDoNotChange
+            true,   // UsePrimePrompt
+            false); // UseVerifyPrompt
+            
+        var createTaskPrimeResult = await _createTaskHandler.Handle(createTaskPrimeRequest, CancellationToken.None);
+        Assert.True(createTaskPrimeResult.IsSuccess);
+        var taskPrimeId = createTaskPrimeResult.Value;
+            
+        // Create a task with UseVerifyPrompt flag set
+        var taskNameVerify = "Verify Task";
+        var promptBodyVerify = "This is a test verify prompt";
+        var createTaskVerifyRequest = new CreateTaskRequest(
+            taskNameVerify, 
+            promptBodyVerify, 
+            userStoryId, 
+            TaskType.Task,
+            false,  // ReferenceUserStory
+            false,  // PromptAppendThink
+            false,  // PromptAppendThinkHard
+            false,  // PromptAppendDoNotChange
+            false,  // UsePrimePrompt
+            true);  // UseVerifyPrompt
+            
+        var createTaskVerifyResult = await _createTaskHandler.Handle(createTaskVerifyRequest, CancellationToken.None);
+        Assert.True(createTaskVerifyResult.IsSuccess);
+        var taskVerifyId = createTaskVerifyResult.Value;
+        
+        // Act - Get both tasks by ID
+        var getTaskPrimeRequest = new GetTaskByIdRequest(taskPrimeId);
+        var getTaskVerifyRequest = new GetTaskByIdRequest(taskVerifyId);
+        
+        var getTaskPrimeResult = await _getTaskByIdHandler.Handle(getTaskPrimeRequest, CancellationToken.None);
+        var getTaskVerifyResult = await _getTaskByIdHandler.Handle(getTaskVerifyRequest, CancellationToken.None);
+        
+        // Assert - Verify retrieval success
+        Assert.True(getTaskPrimeResult.IsSuccess);
+        Assert.True(getTaskVerifyResult.IsSuccess);
+        
+        // Verify the task models have the correct properties
+        var taskPrimeModel = getTaskPrimeResult.Value;
+        var taskVerifyModel = getTaskVerifyResult.Value;
+        
+        Assert.NotNull(taskPrimeModel);
+        Assert.NotNull(taskVerifyModel);
+        
+        // Verify Prime task flags
+        Assert.Equal(taskNamePrime, taskPrimeModel.Name);
+        Assert.Equal(promptBodyPrime, taskPrimeModel.PromptBody);
+        Assert.True(taskPrimeModel.UsePrimePrompt);
+        Assert.False(taskPrimeModel.UseVerifyPrompt);
+        
+        // Verify Verify task flags
+        Assert.Equal(taskNameVerify, taskVerifyModel.Name);
+        Assert.Equal(promptBodyVerify, taskVerifyModel.PromptBody);
+        Assert.False(taskVerifyModel.UsePrimePrompt);
+        Assert.True(taskVerifyModel.UseVerifyPrompt);
+    }
 }

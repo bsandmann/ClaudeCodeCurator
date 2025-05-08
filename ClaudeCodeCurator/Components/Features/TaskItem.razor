@@ -104,6 +104,14 @@
                 {
                     <span class="text-xs px-2 py-0.5 rounded-full bg-stone-500 text-white">Do Not Change</span>
                 }
+                @if (Task.UsePrimePrompt)
+                {
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500 text-white">Prime</span>
+                }
+                @if (Task.UseVerifyPrompt)
+                {
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-teal-500 text-white">Verify</span>
+                }
             </div>
         }
     </div>
@@ -250,7 +258,9 @@
         Task.ReferenceUserStory || 
         Task.PromptAppendThink || 
         Task.PromptAppendThinkHard || 
-        Task.PromptAppendDoNotChange;
+        Task.PromptAppendDoNotChange || 
+        Task.UsePrimePrompt || 
+        Task.UseVerifyPrompt;
     
     private void ToggleExpand()
     {
