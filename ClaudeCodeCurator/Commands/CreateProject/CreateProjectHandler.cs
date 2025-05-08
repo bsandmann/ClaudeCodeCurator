@@ -40,6 +40,7 @@ public class CreateProjectHandler : IRequestHandler<CreateProjectRequest, Result
             var project = new ProjectEntity
             {
                 Name = request.Name,
+                PrimePrompt = request.PrimePrompt,
                 CreatedOrUpdatedUtc = DateTime.UtcNow
             };
 

@@ -46,14 +46,27 @@ public class UpdateProjectHandler : IRequestHandler<UpdateProjectRequest, Result
                 return Result.Fail($"A different project with name '{request.Name}' already exists");
             }
 
-            // Check if name actually changed (optimization)
-            if (project.Name == request.Name)
+            // Check if name or prime prompt actually changed (optimization)
+            bool hasChanges = false;
+            
+            if (project.Name != request.Name)
+            {
+                project.Name = request.Name;
+                hasChanges = true;
+            }
+            
+            if (project.PrimePrompt != request.PrimePrompt)
+            {
+                project.PrimePrompt = request.PrimePrompt;
+                hasChanges = true;
+            }
+            
+            if (!hasChanges)
             {
                 return Result.Ok(false); // No change needed
             }
-
-            // Update the project name
-            project.Name = request.Name;
+            
+            // Update the timestamp
             project.CreatedOrUpdatedUtc = DateTime.UtcNow;
             
             // No need to call context.Update(project) since the entity is tracked

@@ -317,13 +317,14 @@ public partial class IntegrationTests
         var projectModelType = typeof(ProjectModel);
         var properties = projectModelType.GetProperties();
         
-        // Should only contain the 6 expected properties (5 original + CreatedOrUpdatedUtc)
-        Assert.Equal(6, properties.Length);
+        // Should only contain the 7 expected properties (6 original + CreatedOrUpdatedUtc)
+        Assert.Equal(7, properties.Length);
         
         // Check property names
         var propertyNames = properties.Select(p => p.Name).ToList();
         Assert.Contains("Id", propertyNames);
         Assert.Contains("Name", propertyNames);
+        Assert.Contains("PrimePrompt", propertyNames);
         Assert.Contains("UserStoryNumberCounter", propertyNames);
         Assert.Contains("TaskNumberCounter", propertyNames);
         Assert.Contains("CreatedOrUpdatedUtc", propertyNames);

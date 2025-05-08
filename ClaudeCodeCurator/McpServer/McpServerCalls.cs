@@ -17,9 +17,9 @@ public sealed class CccTool
     private readonly string ContinueMessage = "\nAfter finishing call 'ccc' again! Do not forget to call 'ccc' again!";
     private readonly string ThinkMessage = "\nThink before coding!";
     private readonly string ThinkHardMessage = "\nThink very hard before coding! Make sure you understand the task and the code before proceeding!";
-    private readonly string DoNotChangeMessage = "\nDo not change any code other than specifically requested in the task!";
-    private readonly string ReferenceUserStoryMessage1 = "To first give context of the User Story:";
-    private readonly string ReferenceUserStoryMessage2 = "Now that you have the context, please proceed with the task. Do not implement the entire User Story, just the task at hand. The task is:";
+    private readonly string DoNotChangeMessage = "\nDo not change any code other than specifically requested in the Task!";
+    private readonly string ReferenceUserStoryMessage1 = "To first give context of the User Story:\n";
+    private readonly string ReferenceUserStoryMessage2 = "Now that you have the context, please proceed with the Task. Do not implement the entire UserStory, just the task at hand. The Task is:\n";
 
     public CccTool(IMediator mediator)
     {

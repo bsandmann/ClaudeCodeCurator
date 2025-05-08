@@ -11,6 +11,9 @@ public class ProjectEntity
     [MaxLength(200)]
     public string Name { get; set; } = string.Empty;
     
+    // Optional prime prompt with no length limit
+    public string? PrimePrompt { get; set; }
+    
     public int UserStoryNumberCounter { get; set; }
     
     public int TaskNumberCounter { get; set; }
