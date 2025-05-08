@@ -133,6 +133,8 @@ public class GetProjectByLastUsedHandler : IRequestHandler<GetProjectByLastUsedR
                         PromptAppendThink = taskEntity.PromptAppendThink,
                         PromptAppendThinkHard = taskEntity.PromptAppendThinkHard,
                         PromptAppendDoNotChange = taskEntity.PromptAppendDoNotChange,
+                        UsePrimePrompt = taskEntity.UsePrimePrompt,
+                        UseVerifyPrompt = taskEntity.UseVerifyPrompt,
                         UserStoryId = userStoryEntity.Id,
                         ApprovedByUserUtc = taskEntity.ApprovedByUserUtc,
                         RequestedByAiUtc = taskEntity.RequestedByAiUtc,

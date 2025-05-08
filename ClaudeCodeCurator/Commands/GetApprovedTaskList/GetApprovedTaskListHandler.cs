@@ -58,6 +58,8 @@ public class GetApprovedTaskListHandler : IRequestHandler<GetApprovedTaskListReq
                     PromptAppendThink = pto.Task.PromptAppendThink,
                     PromptAppendThinkHard = pto.Task.PromptAppendThinkHard,
                     PromptAppendDoNotChange = pto.Task.PromptAppendDoNotChange,
+                    UsePrimePrompt = pto.Task.UsePrimePrompt,
+                    UseVerifyPrompt = pto.Task.UseVerifyPrompt,
                     UserStoryId = pto.Task.UserStoryId,
                     UserStoryNumber = pto.Task.UserStory.UserStoryNumber,
                     ApprovedByUserUtc = pto.Task.ApprovedByUserUtc,

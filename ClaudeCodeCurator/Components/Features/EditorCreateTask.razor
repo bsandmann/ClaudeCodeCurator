@@ -343,6 +343,7 @@
             _model.UsePrimePrompt = true;
             _model.UseVerifyPrompt = false;
         }
+        StateHasChanged();
     }
     
     private void ToggleVerifyPrompt()
@@ -356,5 +357,6 @@
             _model.UseVerifyPrompt = true;
             _model.UsePrimePrompt = false;
         }
+        StateHasChanged();
     }
 }

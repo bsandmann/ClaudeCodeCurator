@@ -47,6 +47,8 @@ public class GetTaskByIdHandler : IRequestHandler<GetTaskByIdRequest, Result<Tas
                 PromptAppendThink = taskEntity.PromptAppendThink,
                 PromptAppendThinkHard = taskEntity.PromptAppendThinkHard,
                 PromptAppendDoNotChange = taskEntity.PromptAppendDoNotChange,
+                UsePrimePrompt = taskEntity.UsePrimePrompt,
+                UseVerifyPrompt = taskEntity.UseVerifyPrompt,
                 UserStoryId = taskEntity.UserStoryId,
                 UserStoryNumber = taskEntity.UserStory.UserStoryNumber,
                 ApprovedByUserUtc = taskEntity.ApprovedByUserUtc,

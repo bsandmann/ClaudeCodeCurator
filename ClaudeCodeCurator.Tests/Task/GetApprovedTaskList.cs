@@ -185,4 +185,86 @@ public partial class IntegrationTests
         Assert.True(afterUnapprovalResult.IsSuccess);
         afterUnapprovalResult.Value.Should().BeEmpty();
     }
+    
+    [Fact]
+    public async Task GetApprovedTaskList_Returns_Tasks_With_PrimePrompt_And_VerifyPrompt_Flags()
+    {
+        // Arrange - Create project, user story
+        var projectName = "Test Project for Prime and Verify Flags";
+        var createProjectRequest = new CreateProjectRequest(projectName);
+        var createProjectResult = await _createProjectHandler.Handle(createProjectRequest, CancellationToken.None);
+        
+        Assert.True(createProjectResult.IsSuccess);
+        var projectId = createProjectResult.Value;
+        
+        var userStoryName = "User Story for Prime and Verify Flags";
+        var createUserStoryRequest = new CreateUserStoryRequest(userStoryName, projectId);
+        var createUserStoryResult = await _createUserStoryHandler.Handle(createUserStoryRequest, CancellationToken.None);
+        
+        Assert.True(createUserStoryResult.IsSuccess);
+        var userStoryId = createUserStoryResult.Value;
+        
+        // Create tasks with UsePrimePrompt and UseVerifyPrompt flags set
+        var createTaskPrimeRequest = new CreateTaskRequest(
+            "Prime Task", 
+            "Prompt with prime", 
+            userStoryId,
+            TaskType.Task,
+            false,  // ReferenceUserStory
+            false,  // PromptAppendThink
+            false,  // PromptAppendThinkHard
+            false,  // PromptAppendDoNotChange
+            true,   // UsePrimePrompt
+            false); // UseVerifyPrompt
+            
+        var createTaskVerifyRequest = new CreateTaskRequest(
+            "Verify Task", 
+            "Prompt with verify", 
+            userStoryId,
+            TaskType.Task,
+            false,  // ReferenceUserStory
+            false,  // PromptAppendThink
+            false,  // PromptAppendThinkHard
+            false,  // PromptAppendDoNotChange
+            false,  // UsePrimePrompt
+            true);  // UseVerifyPrompt
+            
+        var taskPrimeResult = await _createTaskHandler.Handle(createTaskPrimeRequest, CancellationToken.None);
+        var taskVerifyResult = await _createTaskHandler.Handle(createTaskVerifyRequest, CancellationToken.None);
+        
+        Assert.True(taskPrimeResult.IsSuccess);
+        Assert.True(taskVerifyResult.IsSuccess);
+        
+        var taskPrimeId = taskPrimeResult.Value;
+        var taskVerifyId = taskVerifyResult.Value;
+        
+        // Approve both tasks
+        var approveTaskPrimeRequest = new SetUserTaskApprovalRequest(taskPrimeId, true, projectId);
+        var approveTaskVerifyRequest = new SetUserTaskApprovalRequest(taskVerifyId, true, projectId);
+        
+        await _setUserTaskApprovalHandler.Handle(approveTaskPrimeRequest, CancellationToken.None);
+        await _setUserTaskApprovalHandler.Handle(approveTaskVerifyRequest, CancellationToken.None);
+        
+        // Act - Get approved tasks for the project
+        var getApprovedTaskListHandler = new GetApprovedTaskListHandler(_serviceScopeFactoryMock.Object);
+        var getApprovedTaskListRequest = new GetApprovedTaskListRequest(projectId);
+        var result = await getApprovedTaskListHandler.Handle(getApprovedTaskListRequest, CancellationToken.None);
+        
+        // Assert - Verify tasks are returned with correct flag values
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, result.Value.Count);
+        
+        var primeTask = result.Value.FirstOrDefault(t => t.Id == taskPrimeId);
+        var verifyTask = result.Value.FirstOrDefault(t => t.Id == taskVerifyId);
+        
+        Assert.NotNull(primeTask);
+        Assert.NotNull(verifyTask);
+        
+        // Verify flags are set correctly
+        Assert.True(primeTask.UsePrimePrompt);
+        Assert.False(primeTask.UseVerifyPrompt);
+        
+        Assert.False(verifyTask.UsePrimePrompt);
+        Assert.True(verifyTask.UseVerifyPrompt);
+    }
 }
