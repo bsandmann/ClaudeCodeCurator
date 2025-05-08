@@ -7,6 +7,7 @@ using Commands.GetUserStoryById;
 using Commands.SetAiTaskFinishState;
 using Commands.SetAiTaskRequestState;
 using MediatR;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using ModelContextProtocol.Server;
 using Models;
 
@@ -20,6 +21,10 @@ public sealed class CccTool
     private readonly string DoNotChangeMessage = "\nDo not change any code other than specifically requested in the Task!";
     private readonly string ReferenceUserStoryMessage1 = "To first give context of the User Story:\n";
     private readonly string ReferenceUserStoryMessage2 = "Now that you have the context, please proceed with the Task. Do not implement the entire UserStory, just the task at hand. The Task is:\n";
+    private readonly string PrimeStart = "Read this and remember this rule. These are overarching guidelines which are important to follow. Do not forget them!\n";
+    private readonly string PrimeEnd = "---\n This end the overarching guidelines. Now you can proceed:\n";
+    private string? PrimePrompt = null;
+    private string? VerifyPrompt = null;
 
     public CccTool(IMediator mediator)
     {
@@ -38,6 +43,9 @@ public sealed class CccTool
             {
                 return "No project found";
             }
+
+            PrimePrompt = projectResult.Value.PrimePrompt;
+            VerifyPrompt = projectResult.Value.VerifyPrompt;
 
             // Get the approved tasks for this project
             var tasksResult = await _mediator.Send(new GetApprovedTaskListRequest(projectResult.Value.Id));
@@ -65,6 +73,7 @@ public sealed class CccTool
 
             if (firstTask.RequestedByAiUtc is null)
             {
+                // This is the first task of this cycle
                 var requestedByAiResult = await _mediator.Send(new SetAiTaskRequestStateRequest(firstTask.Id, true));
                 if (requestedByAiResult.IsFailed)
                 {
@@ -76,6 +85,7 @@ public sealed class CccTool
 
             if (firstTask.RequestedByAiUtc is not null)
             {
+                // We are in the middle of a cycle
                 var finishedByAiResult = await _mediator.Send(new SetAiTaskFinishStateRequest(firstTask.Id, true));
                 if (finishedByAiResult.IsFailed)
                 {
@@ -84,6 +94,7 @@ public sealed class CccTool
 
                 if (tasksResult.Value.Where(p => !p.Paused && p.FinishedByAiUtc == null && p.RequestedByAiUtc == null).ToList().Count > 1)
                 {
+                    // We are in the middle of a cycle and there are more tasks to do
                     var nextTask = tasksResult.Value.Where(p => !p.Paused && p.FinishedByAiUtc == null).Skip(1).First();
                     var requestedByAiResult = await _mediator.Send(new SetAiTaskRequestStateRequest(nextTask.Id, true));
                     if (requestedByAiResult.IsFailed)
@@ -95,6 +106,7 @@ public sealed class CccTool
                 }
                 else
                 {
+                    // We are in the middle of a cycle and this is the last task
                     var nextTask = tasksResult.Value.Where(p => !p.Paused && p.FinishedByAiUtc == null).Skip(1).FirstOrDefault();
                     if (nextTask is null)
                     {
@@ -121,7 +133,21 @@ public sealed class CccTool
 
     private async Task<string> AssemblyPromptBody(TaskModel firstTask, bool appendContinueMessage)
     {
-        var promptBody = firstTask.PromptBody;
+        var promptBody = string.Empty;
+        if (firstTask.UsePrimePrompt && !string.IsNullOrWhiteSpace(PrimePrompt))
+        {
+            promptBody = PrimeStart;
+            promptBody += PrimePrompt;
+            promptBody += PrimeEnd;
+        }
+
+        if (firstTask.UseVerifyPrompt && !string.IsNullOrWhiteSpace(VerifyPrompt))
+        {
+            promptBody += VerifyPrompt;
+            promptBody += "\n";
+        }
+
+        promptBody += firstTask.PromptBody;
         if (firstTask.ReferenceUserStory)
         {
             var userStory = await _mediator.Send(new GetUserStoryByIdRequest(firstTask.UserStoryId));
@@ -138,16 +164,16 @@ public sealed class CccTool
 
         if (firstTask.PromptAppendThink)
         {
-            promptBody = promptBody + ThinkMessage;
+            promptBody += ThinkMessage;
         }
         else if (firstTask.PromptAppendThinkHard)
         {
-            promptBody = promptBody + ThinkHardMessage;
+            promptBody += ThinkHardMessage;
         }
 
         if (appendContinueMessage)
         {
-            return promptBody + ContinueMessage;
+            promptBody += ContinueMessage;
         }
 
         return promptBody;

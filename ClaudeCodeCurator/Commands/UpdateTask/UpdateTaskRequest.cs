@@ -24,6 +24,8 @@ public class UpdateTaskRequest : IRequest<Result<bool>>
     public bool PromptAppendThink { get; }
     public bool PromptAppendThinkHard { get; }
     public bool PromptAppendDoNotChange { get; }
+    public bool UsePrimePrompt { get; }
+    public bool UseVerifyPrompt { get; }
 
     public UpdateTaskRequest(
         Guid taskId, 
@@ -33,7 +35,9 @@ public class UpdateTaskRequest : IRequest<Result<bool>>
         bool referenceUserStory = false,
         bool promptAppendThink = false,
         bool promptAppendThinkHard = false,
-        bool promptAppendDoNotChange = false)
+        bool promptAppendDoNotChange = false,
+        bool usePrimePrompt = false,
+        bool useVerifyPrompt = false)
     {
         TaskId = taskId;
         Name = name;
@@ -43,5 +47,7 @@ public class UpdateTaskRequest : IRequest<Result<bool>>
         PromptAppendThink = promptAppendThink;
         PromptAppendThinkHard = promptAppendThinkHard;
         PromptAppendDoNotChange = promptAppendDoNotChange;
+        UsePrimePrompt = usePrimePrompt;
+        UseVerifyPrompt = useVerifyPrompt;
     }
 }

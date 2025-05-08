@@ -27,6 +27,8 @@ public class TaskEntity
     public bool PromptAppendThink { get; set; } = false;
     public bool PromptAppendThinkHard { get; set; } = false;
     public bool PromptAppendDoNotChange { get; set; } = false;
+    public bool UsePrimePrompt { get; set; } = false;
+    public bool UseVerifyPrompt { get; set; } = false;
     
     // Date properties for tracking task lifecycle
     public DateTime? ApprovedByUserUtc { get; set; }

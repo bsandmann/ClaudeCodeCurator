@@ -265,8 +265,8 @@ public partial class IntegrationTests
         var taskModelType = typeof(TaskModel);
         var properties = taskModelType.GetProperties();
         
-        // The TaskModel has 16 properties
-        Assert.Equal(16, properties.Length);
+        // The TaskModel has 18 properties (after adding UsePrimePrompt and UseVerifyPrompt)
+        Assert.Equal(18, properties.Length);
         
         // Check that there are no navigation properties to other entities
         var propertyNames = properties.Select(p => p.Name).ToList();
@@ -285,6 +285,8 @@ public partial class IntegrationTests
         Assert.Contains("PromptAppendThink", propertyNames);
         Assert.Contains("PromptAppendThinkHard", propertyNames);
         Assert.Contains("PromptAppendDoNotChange", propertyNames);
+        Assert.Contains("UsePrimePrompt", propertyNames);
+        Assert.Contains("UseVerifyPrompt", propertyNames);
         Assert.Contains("UserStoryNumber", propertyNames);
         
         // Ensure there are no "UserStory" navigation properties

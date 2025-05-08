@@ -305,6 +305,73 @@ public partial class IntegrationTests
     }
     
     [Fact]
+    public async Task Update_Task_PromptFlags_Succeeds()
+    {
+        // Arrange - Create project, user story, and task
+        var projectName = "Test Project for Prompt Flags Update";
+        var createProjectRequest = new CreateProjectRequest(projectName);
+        var createProjectResult = await _createProjectHandler.Handle(createProjectRequest, CancellationToken.None);
+        
+        Assert.True(createProjectResult.IsSuccess);
+        var projectId = createProjectResult.Value;
+        
+        var userStoryName = "User Story for Prompt Flags Update";
+        var createUserStoryRequest = new CreateUserStoryRequest(userStoryName, projectId);
+        var createUserStoryResult = await _createUserStoryHandler.Handle(createUserStoryRequest, CancellationToken.None);
+        
+        Assert.True(createUserStoryResult.IsSuccess);
+        var userStoryId = createUserStoryResult.Value;
+        
+        var taskName = "Task for Prompt Flags Update";
+        var promptBody = "Test prompt";
+        var taskType = TaskType.Task;
+        var createTaskRequest = new CreateTaskRequest(
+            taskName, 
+            promptBody, 
+            userStoryId, 
+            taskType);
+            
+        var createTaskResult = await _createTaskHandler.Handle(createTaskRequest, CancellationToken.None);
+        Assert.True(createTaskResult.IsSuccess);
+        var taskId = createTaskResult.Value;
+        
+        // Arrange - Prepare the update (only changing prompt flags)
+        var updateTaskRequest = new UpdateTaskRequest(
+            taskId, 
+            taskName,    // Keep the same name
+            promptBody,  // Keep the same prompt
+            taskType,    // Keep the same type
+            usePrimePrompt: true,
+            useVerifyPrompt: true);
+        
+        // Act - Update the task
+        var updateResult = await _updateTaskHandler.Handle(updateTaskRequest, CancellationToken.None);
+        
+        // Assert - Verify update success
+        Assert.True(updateResult.IsSuccess);
+        Assert.True(updateResult.Value); // Should return true indicating a change was made
+        
+        // Verify the task's prompt flags were updated in the database
+        using (var context = Fixture.CreateContext())
+        {
+            context.ChangeTracker.Clear();
+            
+            var updatedTask = await context.Tasks
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == taskId);
+                
+            Assert.NotNull(updatedTask);
+            Assert.Equal(taskName, updatedTask.Name);       // Name should be unchanged
+            Assert.Equal(promptBody, updatedTask.PromptBody); // Prompt should be unchanged
+            Assert.Equal(taskType, updatedTask.Type);        // Type should be unchanged
+            
+            // Verify the prompt flags were updated
+            Assert.True(updatedTask.UsePrimePrompt);
+            Assert.True(updatedTask.UseVerifyPrompt);
+        }
+    }
+
+    [Fact]
     public async Task Update_All_Task_Properties_At_Once_Succeeds()
     {
         // Arrange - Create project, user story, and task
@@ -343,7 +410,13 @@ public partial class IntegrationTests
             taskId, 
             newName, 
             newPrompt, 
-            newType);
+            newType,
+            referenceUserStory: true,
+            promptAppendThink: true,
+            promptAppendThinkHard: true,
+            promptAppendDoNotChange: false,
+            usePrimePrompt: true,
+            useVerifyPrompt: true);
         
         // Act - Update all properties at once
         var updateResult = await _updateTaskHandler.Handle(updateTaskRequest, CancellationToken.None);
@@ -365,6 +438,12 @@ public partial class IntegrationTests
             Assert.Equal(newName, updatedTask.Name);
             Assert.Equal(newPrompt, updatedTask.PromptBody);
             Assert.Equal(newType, updatedTask.Type);
+            Assert.True(updatedTask.ReferenceUserStory);
+            Assert.True(updatedTask.PromptAppendThink);
+            Assert.True(updatedTask.PromptAppendThinkHard);
+            Assert.False(updatedTask.PromptAppendDoNotChange);
+            Assert.True(updatedTask.UsePrimePrompt);
+            Assert.True(updatedTask.UseVerifyPrompt);
         }
     }
 }

@@ -53,6 +53,10 @@ public partial class IntegrationTests
             Assert.Equal(promptBody, task.PromptBody);
             Assert.Equal(userStoryId, task.UserStoryId);
             Assert.Equal(taskType, task.Type);
+            
+            // Verify default values for the new flags
+            Assert.False(task.UsePrimePrompt);
+            Assert.False(task.UseVerifyPrompt);
         }
     }
     
@@ -227,6 +231,67 @@ public partial class IntegrationTests
             Assert.Equal(taskName, task2.Name);
             Assert.Equal(userStory1Id, task1.UserStoryId);
             Assert.Equal(userStory2Id, task2.UserStoryId);
+        }
+    }
+    
+    [Fact]
+    public async Task CreateTask_With_Custom_Prompt_Flags_Succeeds()
+    {
+        // Arrange - Create a project and user story to attach the task to
+        var projectName = "Test Project for Prompt Flags";
+        var createProjectRequest = new CreateProjectRequest(projectName);
+        var createProjectResult = await _createProjectHandler.Handle(createProjectRequest, CancellationToken.None);
+        
+        Assert.True(createProjectResult.IsSuccess);
+        var projectId = createProjectResult.Value;
+        
+        var userStoryName = "User Story for Prompt Flags";
+        var createUserStoryRequest = new CreateUserStoryRequest(userStoryName, projectId);
+        var createUserStoryResult = await _createUserStoryHandler.Handle(createUserStoryRequest, CancellationToken.None);
+        
+        Assert.True(createUserStoryResult.IsSuccess);
+        var userStoryId = createUserStoryResult.Value;
+        
+        // Create a task with custom prompt flags
+        var taskName = "Task with Custom Prompt Flags";
+        var promptBody = "This is a test prompt with custom flags";
+        var taskType = TaskType.Task;
+        var createTaskRequest = new CreateTaskRequest(
+            taskName, 
+            promptBody, 
+            userStoryId, 
+            taskType,
+            promptAppendThink: true,
+            usePrimePrompt: true,
+            useVerifyPrompt: true);
+        
+        // Act
+        var result = await _createTaskHandler.Handle(createTaskRequest, CancellationToken.None);
+        
+        // Assert
+        Assert.True(result.IsSuccess);
+        var taskId = result.Value;
+        
+        // Verify the task was created in the database with correct flags
+        using (var context = Fixture.CreateContext())
+        {
+            context.ChangeTracker.Clear();
+            var task = await context.Tasks
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == taskId);
+                
+            Assert.NotNull(task);
+            Assert.Equal(taskName, task.Name);
+            Assert.Equal(promptBody, task.PromptBody);
+            Assert.Equal(userStoryId, task.UserStoryId);
+            Assert.Equal(taskType, task.Type);
+            
+            // Verify prompt flags
+            Assert.True(task.PromptAppendThink);
+            Assert.False(task.PromptAppendThinkHard);
+            Assert.False(task.PromptAppendDoNotChange);
+            Assert.True(task.UsePrimePrompt);
+            Assert.True(task.UseVerifyPrompt);
         }
     }
 }

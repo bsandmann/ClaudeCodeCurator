@@ -93,6 +93,18 @@ public class UpdateTaskHandler : IRequestHandler<UpdateTaskRequest, Result<bool>
                 hasChanges = true;
             }
             
+            if (task.UsePrimePrompt != request.UsePrimePrompt)
+            {
+                task.UsePrimePrompt = request.UsePrimePrompt;
+                hasChanges = true;
+            }
+            
+            if (task.UseVerifyPrompt != request.UseVerifyPrompt)
+            {
+                task.UseVerifyPrompt = request.UseVerifyPrompt;
+                hasChanges = true;
+            }
+            
             // Only save if there are actual changes
             if (hasChanges)
             {
