@@ -28,6 +28,23 @@ public class TransactionalTestDatabaseFixture
 
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
+        
+        // Ensure Settings entity exists
+        var settings = context.Settings.FirstOrDefault();
+        if (settings == null)
+        {
+            context.Settings.Add(new Entities.SettingsEntity
+            {
+                OpenAiApiKey = string.Empty,
+                GoogleAiApiKey = string.Empty,
+                AnthropicAiApiKey = string.Empty,
+                OpenAiModel = string.Empty,
+                GoogleAiModel = string.Empty,
+                AnthropicAiModel = string.Empty
+            });
+            context.SaveChanges();
+        }
+        
         Cleanup();
     }
 
@@ -39,6 +56,18 @@ public class TransactionalTestDatabaseFixture
         context.Tasks.RemoveRange(context.Tasks);
         context.UserStories.RemoveRange(context.UserStories);
         context.Projects.RemoveRange(context.Projects);
+        
+        // Reset Settings to a default state
+        var settings = context.Settings.FirstOrDefault();
+        if (settings != null)
+        {
+            settings.OpenAiApiKey = string.Empty;
+            settings.GoogleAiApiKey = string.Empty;
+            settings.AnthropicAiApiKey = string.Empty;
+            settings.OpenAiModel = string.Empty;
+            settings.GoogleAiModel = string.Empty;
+            settings.AnthropicAiModel = string.Empty;
+        }
         
         context.SaveChanges();
     }

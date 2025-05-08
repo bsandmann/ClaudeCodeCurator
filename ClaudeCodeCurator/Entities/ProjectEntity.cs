@@ -14,6 +14,9 @@ public class ProjectEntity
     // Optional prime prompt with no length limit
     public string? PrimePrompt { get; set; }
     
+    // Optional verify prompt with no length limit
+    public string? VerifyPrompt { get; set; }
+    
     public int UserStoryNumberCounter { get; set; }
     
     public int TaskNumberCounter { get; set; }

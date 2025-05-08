@@ -14,11 +14,14 @@ public class UpdateProjectRequest : IRequest<Result<bool>>
     public string Name { get; }
     
     public string? PrimePrompt { get; }
+    
+    public string? VerifyPrompt { get; }
 
-    public UpdateProjectRequest(Guid projectId, string name, string? primePrompt = null)
+    public UpdateProjectRequest(Guid projectId, string name, string? primePrompt = null, string? verifyPrompt = null)
     {
         ProjectId = projectId;
         Name = name;
         PrimePrompt = primePrompt;
+        VerifyPrompt = verifyPrompt;
     }
 }

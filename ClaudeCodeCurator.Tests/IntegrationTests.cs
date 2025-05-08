@@ -4,6 +4,7 @@ using ClaudeCodeCurator.Commands.CreateUserStory;
 using ClaudeCodeCurator.Commands.GetProjectById;
 using ClaudeCodeCurator.Commands.GetProjectByLastUsed;
 using ClaudeCodeCurator.Commands.GetProjectList;
+using ClaudeCodeCurator.Commands.GetSettings;
 using ClaudeCodeCurator.Commands.GetTaskById;
 using ClaudeCodeCurator.Commands.GetUserStoryById;
 using ClaudeCodeCurator.Commands.MoveTaskInProjectOrder;
@@ -15,13 +16,16 @@ using ClaudeCodeCurator.Commands.SetAiTaskRequestState;
 using ClaudeCodeCurator.Commands.SetTaskPause;
 using ClaudeCodeCurator.Commands.SetUserTaskApproval;
 using ClaudeCodeCurator.Commands.UpdateProject;
+using ClaudeCodeCurator.Commands.UpdateSettings;
 using ClaudeCodeCurator.Commands.UpdateTask;
 using ClaudeCodeCurator.Commands.UpdateUserStory;
 using ClaudeCodeCurator.Common;
 using FluentResults;
 using LazyCache;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -57,6 +61,8 @@ public partial class IntegrationTests : IDisposable
     private readonly SetAiTaskRequestStateHandler _setAiTaskRequestStateHandler;
     private readonly SetAiTaskFinishStateHandler _setAiTaskFinishStateHandler;
     private readonly MoveTaskInProjectOrderHandler _moveTaskInProjectOrderHandler;
+    private readonly UpdateSettingsHandler _updateSettingsHandler;
+    private readonly GetSettingsHandler _getSettingsHandler;
     private readonly IServiceProvider _serviceProvider;
     
     public IntegrationTests(TransactionalTestDatabaseFixture fixture)
@@ -81,9 +87,15 @@ public partial class IntegrationTests : IDisposable
             
         _serviceProvider = services.BuildServiceProvider();
             
-        // Create a mock service provider that returns the test context and EditorState
+        // Create a mock service provider that returns the test context with tracking behavior and EditorState
+        var trackingOptions = new DbContextOptionsBuilder<DataContext>()
+            .UseNpgsql(TransactionalTestDatabaseFixture.ConnectionString)
+            .EnableSensitiveDataLogging(true)
+            .Options;
+        var trackingContext = new DataContext(trackingOptions);
+        
         _serviceProviderMock = Mock.Of<IServiceProvider>(sp => 
-            sp.GetService(typeof(DataContext)) == _context && 
+            sp.GetService(typeof(DataContext)) == trackingContext && 
             sp.GetService(typeof(EditorState)) == _editorState);
             
         // Create a mock service scope that returns our mocked service provider
@@ -115,6 +127,8 @@ public partial class IntegrationTests : IDisposable
         this._setAiTaskRequestStateHandler = new SetAiTaskRequestStateHandler(_serviceScopeFactoryMock.Object, _editorState);
         this._setAiTaskFinishStateHandler = new SetAiTaskFinishStateHandler(_serviceScopeFactoryMock.Object, _editorState);
         this._moveTaskInProjectOrderHandler = new MoveTaskInProjectOrderHandler(_serviceScopeFactoryMock.Object);
+        this._updateSettingsHandler = new UpdateSettingsHandler(_serviceScopeFactoryMock.Object, Mock.Of<ILogger<UpdateSettingsHandler>>());
+        this._getSettingsHandler = new GetSettingsHandler(_serviceScopeFactoryMock.Object, Mock.Of<ILogger<GetSettingsHandler>>());
 
         // Initialize handlers with the mocked service scope factory
     }

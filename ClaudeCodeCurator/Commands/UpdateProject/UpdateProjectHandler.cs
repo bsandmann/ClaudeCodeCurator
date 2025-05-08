@@ -46,7 +46,7 @@ public class UpdateProjectHandler : IRequestHandler<UpdateProjectRequest, Result
                 return Result.Fail($"A different project with name '{request.Name}' already exists");
             }
 
-            // Check if name or prime prompt actually changed (optimization)
+            // Check if properties actually changed (optimization)
             bool hasChanges = false;
             
             if (project.Name != request.Name)
@@ -58,6 +58,12 @@ public class UpdateProjectHandler : IRequestHandler<UpdateProjectRequest, Result
             if (project.PrimePrompt != request.PrimePrompt)
             {
                 project.PrimePrompt = request.PrimePrompt;
+                hasChanges = true;
+            }
+            
+            if (project.VerifyPrompt != request.VerifyPrompt)
+            {
+                project.VerifyPrompt = request.VerifyPrompt;
                 hasChanges = true;
             }
             

@@ -11,10 +11,13 @@ public class CreateProjectRequest : IRequest<Result<Guid>>
     public string Name { get; }
     
     public string? PrimePrompt { get; }
+    
+    public string? VerifyPrompt { get; }
 
-    public CreateProjectRequest(string name, string? primePrompt = null)
+    public CreateProjectRequest(string name, string? primePrompt = null, string? verifyPrompt = null)
     {
         Name = name;
         PrimePrompt = primePrompt;
+        VerifyPrompt = verifyPrompt;
     }
 }

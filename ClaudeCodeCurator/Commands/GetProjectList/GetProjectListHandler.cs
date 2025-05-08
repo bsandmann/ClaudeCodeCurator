@@ -35,6 +35,8 @@ public class GetProjectListHandler : IRequestHandler<GetProjectListRequest, Resu
             {
                 Id = p.Id,
                 Name = p.Name,
+                PrimePrompt = p.PrimePrompt,
+                VerifyPrompt = p.VerifyPrompt,
                 UserStoryNumberCounter = p.UserStoryNumberCounter,
                 TaskNumberCounter = p.TaskNumberCounter,
                 CreatedOrUpdatedUtc = p.CreatedOrUpdatedUtc,

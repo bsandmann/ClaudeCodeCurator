@@ -6,6 +6,7 @@ using ClaudeCodeCurator.Commands.GetProjectByLastUsed;
 using ClaudeCodeCurator.Commands.GetProjectList;
 using ClaudeCodeCurator.Common;
 using ClaudeCodeCurator.Components;
+using ClaudeCodeCurator.Entities;
 using ClaudeCodeCurator.McpServer;
 using MediatR;
 using Microsoft.AspNetCore.Components;
@@ -87,6 +88,54 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Applying database migrations...");
         await dataContext.Database.MigrateAsync();
         logger.LogInformation("Database migrations applied successfully");
+        
+        // Ensure there's exactly one Settings row
+        logger.LogInformation("Checking Settings table...");
+        var settingsCount = await dataContext.Settings.CountAsync();
+        
+        if (settingsCount == 0)
+        {
+            // No settings row exists, create one
+            logger.LogInformation("No Settings row found. Creating default Settings entry...");
+            var defaultSettings = new ClaudeCodeCurator.Entities.SettingsEntity
+            {
+                OpenAiApiKey = string.Empty,
+                GoogleAiApiKey = string.Empty,
+                AnthropicAiApiKey = string.Empty,
+                OpenAiModel = string.Empty,
+                GoogleAiModel = string.Empty,
+                AnthropicAiModel = string.Empty
+            };
+            
+            // Create a new scope with a tracking context for adding entities
+            using var settingsScope = app.Services.CreateScope();
+            var settingsContext = settingsScope.ServiceProvider.GetRequiredService<DataContext>();
+            
+            settingsContext.Settings.Add(defaultSettings);
+            await settingsContext.SaveChangesAsync();
+            logger.LogInformation("Default Settings entry created successfully");
+        }
+        else if (settingsCount > 1)
+        {
+            // Multiple settings rows exist, keep only the first one
+            logger.LogWarning($"Found {settingsCount} Settings rows. Removing extras to maintain only one row...");
+            
+            // Create a new scope with a tracking context for removing entities
+            using var settingsScope = app.Services.CreateScope();
+            var settingsContext = settingsScope.ServiceProvider.GetRequiredService<DataContext>();
+            
+            var allSettings = await settingsContext.Settings.ToListAsync();
+            var firstSettings = allSettings.First();
+            
+            // Remove all settings rows except the first one
+            settingsContext.Settings.RemoveRange(allSettings.Skip(1));
+            await settingsContext.SaveChangesAsync();
+            logger.LogInformation("Extra Settings rows removed. Now only one Settings row exists.");
+        }
+        else
+        {
+            logger.LogInformation("Verified: Exactly one Settings row exists.");
+        }
     }
     catch (Exception ex)
     {

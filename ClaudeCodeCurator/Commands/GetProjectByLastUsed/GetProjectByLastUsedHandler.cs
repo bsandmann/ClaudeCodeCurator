@@ -98,6 +98,7 @@ public class GetProjectByLastUsedHandler : IRequestHandler<GetProjectByLastUsedR
                 Id = projectEntity.Id,
                 Name = projectEntity.Name,
                 PrimePrompt = projectEntity.PrimePrompt,
+                VerifyPrompt = projectEntity.VerifyPrompt,
                 UserStoryNumberCounter = projectEntity.UserStoryNumberCounter,
                 TaskNumberCounter = projectEntity.TaskNumberCounter,
                 CreatedOrUpdatedUtc = projectEntity.CreatedOrUpdatedUtc,

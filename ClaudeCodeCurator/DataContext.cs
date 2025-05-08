@@ -19,6 +19,7 @@ public class DataContext : DbContext
     public DbSet<UserStoryEntity> UserStories { get; set; } = null!;
     public DbSet<TaskEntity> Tasks { get; set; } = null!;
     public DbSet<ProjectTaskOrderEntity> ProjectTaskOrders { get; set; } = null!;
+    public DbSet<SettingsEntity> Settings { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -97,6 +98,21 @@ public class DataContext : DbContext
                 .HasForeignKey(d => d.TaskId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
+        });
+        
+        modelBuilder.Entity<SettingsEntity>(entity =>
+        {
+            entity.ToTable("Settings");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .ValueGeneratedOnAdd();
+            entity.Property(e => e.OpenAiApiKey).HasMaxLength(200);
+            entity.Property(e => e.GoogleAiApiKey).HasMaxLength(200);
+            entity.Property(e => e.AnthropicAiApiKey).HasMaxLength(200);
+            entity.Property(e => e.OpenAiModel).HasMaxLength(100);
+            entity.Property(e => e.GoogleAiModel).HasMaxLength(100);
+            entity.Property(e => e.AnthropicAiModel).HasMaxLength(100);
         });
     }
 }

@@ -48,6 +48,12 @@
                 <InputTextArea id="primePrompt" @bind-Value="_model.PrimePrompt" class="w-full p-2 border rounded-md h-36 bg-stone-500 text-white font-mono text-sm" 
                               placeholder="Enter prime prompt (optional)" />
             </div>
+            
+            <div class="mb-3">
+                <label for="verifyPrompt" class="block text-sm font-medium text-stone-700 mb-1">Verify Prompt</label>
+                <InputTextArea id="verifyPrompt" @bind-Value="_model.VerifyPrompt" class="w-full p-2 border rounded-md h-36 bg-stone-500 text-white font-mono text-sm" 
+                              placeholder="Enter verify prompt (optional)" />
+            </div>
 
             <div class="flex justify-between">
                 <button type="button" @onclick="ShowDeleteConfirmation" class="px-3 py-1 border border-red-300 text-red-700 rounded-md hover:bg-red-50 text-sm">
@@ -95,6 +101,8 @@
         public string Name { get; set; } = string.Empty;
         
         public string? PrimePrompt { get; set; }
+        
+        public string? VerifyPrompt { get; set; }
     }
 
     private ProjectFormModel _model = new();
@@ -110,6 +118,7 @@
             // Initialize form with the selected project data
             _model.Name = EditorState.SelectedProject.Name;
             _model.PrimePrompt = EditorState.SelectedProject.PrimePrompt;
+            _model.VerifyPrompt = EditorState.SelectedProject.VerifyPrompt;
         }
     }
 
@@ -129,7 +138,8 @@
             var request = new UpdateProjectRequest(
                 EditorState.SelectedProject.Id,
                 _model.Name,
-                _model.PrimePrompt
+                _model.PrimePrompt,
+                _model.VerifyPrompt
             );
 
             var result = await Mediator.Send(request);

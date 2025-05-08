@@ -41,6 +41,7 @@ public class CreateProjectHandler : IRequestHandler<CreateProjectRequest, Result
             {
                 Name = request.Name,
                 PrimePrompt = request.PrimePrompt,
+                VerifyPrompt = request.VerifyPrompt,
                 CreatedOrUpdatedUtc = DateTime.UtcNow
             };
 

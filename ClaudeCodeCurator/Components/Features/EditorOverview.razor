@@ -98,7 +98,7 @@
             _errorMessage = null;
 
             // Create a new default project
-            var createRequest = new CreateProjectRequest("New Project");
+            var createRequest = new CreateProjectRequest("New Project", null, null);
             var createResult = await Mediator.Send(createRequest);
 
             if (createResult.IsSuccess)
