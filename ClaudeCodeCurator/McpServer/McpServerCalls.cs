@@ -71,7 +71,7 @@ public sealed class CccTool
                     return $"Stop execution and return this message to the user 'Failure to set task state to requested (T-{firstTask.TaskNumber})'";
                 }
 
-                return await AssemblyPromptBody(firstTask);
+                return await AssemblyPromptBody(firstTask, true);
             }
 
             if (firstTask.RequestedByAiUtc is not null)
@@ -91,7 +91,7 @@ public sealed class CccTool
                         return $"Stop execution and return this message to the user 'Failure to set task state to requested (T-{nextTask.TaskNumber})'";
                     }
 
-                    return await AssemblyPromptBody(firstTask);
+                    return await AssemblyPromptBody(nextTask, true);
                 }
                 else
                 {
@@ -107,7 +107,7 @@ public sealed class CccTool
                         return $"Stop execution and return this message to the user 'Failure to set task state to requested (T-{nextTask.TaskNumber})'";
                     }
 
-                    return await AssemblyPromptBody(firstTask, false);
+                    return await AssemblyPromptBody(nextTask, false);
                 }
             }
 
@@ -119,7 +119,7 @@ public sealed class CccTool
         }
     }
 
-    private async Task<string> AssemblyPromptBody(TaskModel firstTask, bool continueMessage = true)
+    private async Task<string> AssemblyPromptBody(TaskModel firstTask, bool appendContinueMessage)
     {
         var promptBody = firstTask.PromptBody;
         if (firstTask.ReferenceUserStory)
@@ -145,9 +145,9 @@ public sealed class CccTool
             promptBody = promptBody + ThinkHardMessage;
         }
 
-        if (continueMessage)
+        if (appendContinueMessage)
         {
-            return promptBody + continueMessage;
+            return promptBody + ContinueMessage;
         }
 
         return promptBody;

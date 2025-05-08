@@ -1,0 +1,9 @@
+﻿services:
+  claudecodecurator:
+    image: claudecodecurator
+    build:
+      context: .
+      dockerfile: ClaudeCodeCurator/Dockerfile
+    ports:
+      - "3330:3330"
+

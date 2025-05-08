@@ -1,7 +1,0 @@
-@HostAddress = http://localhost:5034
-
-###
-# Get Job-Status from update endpoint
-GET {{HostAddress}}/api/Mcp/GetNextTask
-Accept: application/json
-Content-Type: application/json

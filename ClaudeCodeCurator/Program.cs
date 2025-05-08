@@ -14,6 +14,10 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using ModelContextProtocol;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure the app to use HTTP by default
+builder.WebHost.UseUrls("http://0.0.0.0:3330");
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
